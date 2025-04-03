@@ -1,34 +1,171 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    {% if user.is_authenticated %}
-        <h2>Товары</h2>
-        <div class="product-grid">
-            {% for product in products %}
+    <h2>Каталог товаров</h2>
+    <div class="product-grid">
+        {% for item in products_with_discount %}
+            {% with product=item.product %}
                 <div class="product-card">
-                    <img src="https://via.placeholder.com/150" alt="{{ product.name }}">
-                    <h3>{{ product.name }}</h3>
-                    <div class="price {% if product.discount_price %}discounted{% endif %}">
-                        {{ product.price }} $
-                    </div>
-                    {% if product.discount_price %}
-                        <div class="discount-price">{{ product.discount_price }} $</div>
+                    <!-- Изображение -->
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/200" alt="Нет изображения">
                     {% endif %}
-                    <div class="availability {% if product.in_stock %}in-stock{% else %}out-of-stock{% endif %}">
-                        {% if product.in_stock %}
-                            Есть в наличии
+
+                    <!-- Процент скидки в правом верхнем углу -->
+                    {% if product.discount_price and item.discount_percent %}
+                        <div class="discount-percentage">
+                            -{{ item.discount_percent }}%
+                        </div>
+                    {% endif %}
+
+                    <!-- Название товара и статус -->
+                    <div class="product-info">
+                        <h3>{{ product.name }}</h3>
+                        <div class="availability {% if product.in_stock %}in-stock{% else %}out-of-stock{% endif %}">
+                            {% if product.in_stock %}В наличии{% else %}Нет в наличии{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Цены -->
+                    <div class="price-container">
+                        {% if product.discount_price %}
+                            <span class="discounted-price">{{ product.discount_price }} $</span>
+                            <span class="original-price">{{ product.price }} $</span>
                         {% else %}
-                            Нет в наличии
+                            <span class="price">{{ product.price }} $</span>
                         {% endif %}
                     </div>
-                    <button class="btn-add-to-cart" {% if not product.in_stock %}disabled{% endif %}>В корзину</button>
+
+                    <!-- Отзывы -->
+                    <div class="rating-reviews">
+                        <i class="fas fa-comment"></i>
+                        <span class="reviews-count">0 отзывов</span>
+                    </div>
+
+                    <!-- Кнопка "В корзину" в левом нижнем углу -->
+                    <button class="btn-add-to-cart" {% if not product.in_stock %}disabled{% endif %}>
+                        В корзину
+                    </button>
                 </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="text-center">
-            <h2>Добро пожаловать!</h2>
-            <p>Пожалуйста, <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">войдите</a> или <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">зарегистрируйтесь</a>, чтобы увидеть товары.</p>
-        </div>
-    {% endif %}
+            {% endwith %}
+        {% endfor %}
+    </div>
+
+    <style>
+        /* Стили для карточек товаров */
+        .product-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+        }
+        .product-card {
+            position: relative;
+            flex: 0 0 calc(20% - 16px);
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 20px;
+            text-align: left;
+            min-height: 400px;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .product-card .product-info {
+            margin: 10px 0;
+        }
+        .product-card h3 {
+            font-size: 18px;
+            margin: 0 0 5px 0;
+            color: #333;
+            font-weight: 500;
+        }
+        .product-card .availability {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .product-card .availability.in-stock {
+            color: #28a745;
+        }
+        .product-card .availability.out-of-stock {
+            color: #dc3545;
+        }
+        .product-card .price-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .product-card .price {
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }
+        .product-card .original-price {
+            font-size: 16px;
+            color: #999;
+            text-decoration: line-through;
+        }
+        .product-card .discounted-price {
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }
+        .product-card .discount-percentage {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #f5a623;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 15px;
+        }
+        .product-card .rating-reviews {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .product-card .rating-reviews .fa-comment {
+            color: #999;
+        }
+        .product-card .btn-add-to-cart {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: #333;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 25px;
+            color: white;
+            transition: background-color 0.3s;
+            width: auto;
+            display: inline-block;
+        }
+        .product-card .btn-add-to-cart:hover {
+            background-color: #555;
+        }
+        .product-card .btn-add-to-cart:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
 {% endblock %}

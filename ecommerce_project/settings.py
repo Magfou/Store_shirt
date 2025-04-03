@@ -26,7 +26,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'ecommerce_project.middleware.LoginRequiredMiddleware',
+    'ecommerce_project.middleware.LoginRequiredMiddleware',  # Добавляем middleware
 ]
 
 ROOT_URLCONF = 'ecommerce_project.urls'
@@ -85,3 +85,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Настройки для выхода
 LOGOUT_REDIRECT_URL = '/?logged_out=true'
+
+# Настройки для медиафайлов
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
