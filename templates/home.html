@@ -104,6 +104,11 @@
                                     <span class="price">{{ product.price }} $</span>
                                 {% endif %}
                             </div>
+
+                            <!-- Кнопка "В корзину" -->
+                            <button class="btn btn-add-to-cart" {% if not product.in_stock %}disabled{% endif %}>
+                                <i class="fas fa-cart-plus"></i> В корзину
+                            </button>
                         </div>
                     {% endwith %}
                 {% empty %}
@@ -124,7 +129,6 @@
         }
         .filters:hover {
             transform: translateY(-3px);
-            
         }
         .filters h3 {
             color: #2d3748;
@@ -165,12 +169,11 @@
             opacity: 0;
             transform: translateY(10px);
             animation: slideUp 0.5s ease forwards;
-            
         }
         .filter-group input:focus,
         .filter-group select:focus {
-            outline: none;
-            border-color:rgb(2, 2, 2);
+            the: none;
+            border-color: rgb(2, 2, 2);
             box-shadow: 0 0 8px rgba(49, 130, 206, 0.2);
             background-color: #fff;
         }
@@ -190,7 +193,6 @@
         .btn-apply, .btn-reset {
             flex: 1;
         }
-        /* Убраны кастомные стили для .btn-reset, чтобы он выглядел как .btn-apply */
 
         /* Стили для кнопки "Фильтровать" и выпадающего списка сортировки */
         .filter-sort-container {
@@ -204,7 +206,7 @@
             border-radius: 8px;
             border: 1px solid #e2e8f0;
             font-size: 14px;
-            color:rgb(0, 0, 0);
+            color: rgb(0, 0, 0);
             background-color: #edf2f7;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -217,7 +219,7 @@
         }
         .filter-sort-button:focus {
             outline: none;
-            border-color:rgb(1, 1, 1);
+            border-color: rgb(1, 1, 1);
             box-shadow: 0 0 8px rgba(49, 130, 206, 0.2);
         }
         .filter-sort-dropdown {
@@ -280,15 +282,16 @@
             overflow: hidden;
             padding: 15px;
             text-align: left;
-            min-height: 350px;
+            min-height: 400px; /* Увеличиваем высоту для кнопки */
             opacity: 0;
             transform: translateY(20px);
             animation: fadeIn 0.5s ease forwards;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), box-shadow 0.3s ease; /* Плавная анимация с "пружинящим" эффектом */
+            cursor: pointer; /* Добавляем cursor: pointer */
         }
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-10px); /* Карточка "выезжает" вверх при наведении */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Увеличиваем тень */
         }
         .product-card img {
             width: 100%;
@@ -352,6 +355,55 @@
             padding: 5px 10px;
             border-radius: 12px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        /* Стили для кнопки "В корзину" */
+        .btn-add-to-cart {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background-color: #333;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 25px;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: slideIn 0.5s ease forwards;
+            animation-delay: 0.3s;
+        }
+        .btn-add-to-cart i {
+            font-size: 16px;
+        }
+       
+        }
+        .btn-add-to-cart:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            animation: none; /* Отключаем анимации для неактивной кнопки */
+        }
+        /* Анимация поднятия при нажатии (как у карточки) */
+        @keyframes liftEffect {
+            0% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px); /* Поднимается вверх на 5px */
+            }
+            100% {
+                transform: translateY(0); /* Возвращается в исходное положение */
+            }
+        }
+        /* Анимация появления кнопки */
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
         @keyframes fadeIn {
             to {
@@ -438,6 +490,9 @@
                                         <span class="price">${item.price} $</span>
                                     `}
                                 </div>
+                                <button class="btn btn-add-to-cart" ${item.in_stock ? '' : 'disabled'}>
+                                    <i class="fas fa-cart-plus"></i> В корзину
+                                </button>
                             `;
                             productGrid.appendChild(card);
                         });
