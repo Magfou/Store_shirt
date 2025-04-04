@@ -12,6 +12,7 @@
         body {
             background-color: #f8f9fa;
             font-family: 'Roboto', sans-serif;
+            position: relative;
         }
         .container {
             max-width: 1400px;
@@ -208,7 +209,7 @@
             display: inline;
         }
         .logout-form button {
-            background: none;
+            background: None;
             border: none;
             padding: 0;
             font: inherit;
@@ -292,61 +293,134 @@
             color: white;
             border-color: #1a73e8;
         }
-        /* Стили для кнопки "Фильтровать" и выпадающего списка сортировки */
-        .filter-sort-container {
-            position: relative;
-            display: inline-block;
-        }
-        .filter-sort-button {
-            padding: 4px 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            font-size: 12px;
-            color: #333;
-            background-color: #f1f5f9;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            opacity: 0;
-            transform: translateY(10px);
-            animation: slideUp 0.5s ease forwards;
-        }
-        .filter-sort-button:hover {
-            background-color: #e5e7eb;
-        }
-        .filter-sort-button:focus {
-            outline: none;
-            border-color: #1a73e8;
-            box-shadow: 0 0 5px rgba(26, 115, 232, 0.3);
-        }
-        .filter-sort-dropdown {
-            position: absolute;
-            top: 100%;
+        /* Стили для корзины */
+        .cart-overlay {
+            position: fixed;
+            top: 0;
             left: 0;
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            display: none;
-            min-width: 150px;
-        }
-        .filter-sort-dropdown.show {
-            display: block;
-        }
-        .filter-sort-dropdown select {
             width: 100%;
-            padding: 4px 8px;
-            border: none;
-            font-size: 12px;
-            color: #333;
-            background-color: transparent;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            cursor: pointer;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
         }
-        .filter-sort-dropdown select:focus {
-            outline: none;
+        .cart-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100%;
+            background: linear-gradient(145deg, #ffffff, #f0f4f8);
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            padding: 20px;
+            transition: right 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            overflow-y: auto;
+            border-radius: 15px 0 0 15px;
+        }
+        .cart-sidebar.active {
+            right: 0;
+        }
+        .cart-sidebar h2 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: left;
+            font-weight: 500;
+            border-bottom: 2px solid #1a73e8;
+            padding-bottom: 10px;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        .cart-item:hover {
+            transform: translateY(-3px);
+        }
+        .cart-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-right: 15px;
+            border-radius: 5px;
+        }
+        .cart-item-info {
+            flex: 1;
+        }
+        .cart-item-info h4 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+            font-weight: 500;
+        }
+        .cart-item-info p {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+        }
+        .btn-remove-item {
+            background-color: #e53e3e;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-remove-item:hover {
+            background-color: #c53030;
+        }
+        .cart-total {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #2c3e50;
+            background-color: #f0f4f8;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: right;
+        }
+        .btn-checkout {
+            width: 100%;
+            padding: 12px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .btn-checkout:hover {
+            background-color: #0d5bb5;
+            transform: scale(1.02);
+        }
+        /* Стили для анимации "полета" товара */
+        .flying-item {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            z-index: 1002;
+            pointer-events: none;
+            opacity: 0.8;
+            transition: all 0.6s ease;
         }
     </style>
 </head>
@@ -383,9 +457,9 @@
                 <div class="navbar-nav ms-auto d-flex align-items-center">
                     <!-- Корзина (видна только авторизованным) -->
                     {% if user.is_authenticated %}
-                        <a href="#" class="cart-icon">
+                        <a href="#" class="cart-icon" id="cart-toggle">
                             <img src="{% static '/images/drawer.png' %}" alt="Корзина">
-                            <span class="badge">0</span>
+                            <span class="badge" id="cart-count">0</span>
                         </a>
                     {% endif %}
                     <!-- Авторизация -->
@@ -404,6 +478,15 @@
             </div>
         </div>
     </nav>
+
+    <!-- Корзина -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <h2>Ваша корзина</h2>
+        <div id="cart-items"></div>
+        <div class="cart-total" id="cart-total">Итого: 0 $</div>
+        <button class="btn-checkout" id="checkout-button">Оплатить</button>
+    </div>
 
     <!-- Сообщения -->
     {% if messages %}
@@ -561,6 +644,62 @@
                     alert.style.animation = 'fadeOut 0.5s ease-in-out forwards';
                 }, 3000);
             });
+
+            // Обработчик для кнопки "Оплатить"
+            document.getElementById('checkout-button').addEventListener('click', function() {
+                fetch('/checkout/', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Очищаем корзину на фронтенде
+                        document.getElementById('cart-items').innerHTML = '<p>Корзина пуста.</p>';
+                        document.getElementById('cart-total').textContent = 'Итого: 0 $';
+                        document.getElementById('cart-count').textContent = '0';
+                        // Показываем сообщение об успешном заказе
+                        const messagesContainer = document.querySelector('.messages') || document.createElement('div');
+                        messagesContainer.className = 'messages';
+                        messagesContainer.innerHTML = `
+                            <div class="alert alert-success" role="alert">
+                                Заказ #${data.order_id} успешно оформлен! Сумма: ${data.total_price} $
+                            </div>
+                        `;
+                        document.body.appendChild(messagesContainer);
+                        setTimeout(() => {
+                            messagesContainer.querySelector('.alert').style.animation = 'fadeOut 0.5s ease-in-out forwards';
+                        }, 3000);
+                    } else {
+                        const messagesContainer = document.querySelector('.messages') || document.createElement('div');
+                        messagesContainer.className = 'messages';
+                        messagesContainer.innerHTML = `
+                            <div class="alert alert-error" role="alert">
+                                Ошибка при оформлении заказа: ${data.error}
+                            </div>
+                        `;
+                        document.body.appendChild(messagesContainer);
+                        setTimeout(() => {
+                            messagesContainer.querySelector('.alert').style.animation = 'fadeOut 0.5s ease-in-out forwards';
+                        }, 3000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при оформлении заказа:', error);
+                });
+            });
+
+            // Функция для получения CSRF-токена
+            function getCsrfToken() {
+                const cookieValue = document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith('csrftoken='))
+                    ?.split('=')[1];
+                return cookieValue;
+            }
         });
     </script>
 </body>

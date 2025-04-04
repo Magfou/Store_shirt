@@ -23,100 +23,107 @@
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-        <!-- Фильтры в левом углу -->
-        <div class="col-md-3">
-            <div class="filters">
-                <h3>Фильтры</h3>
-                <form method="get" class="filter-form">
-                    <!-- Поиск по названию и кнопка "Фильтровать" -->
-                    <div class="filter-group search-filter-group">
-                        <div class="search-container">
-                            <input type="text" name="search" id="search" value="{{ search_query }}" placeholder="Введите название">
-                            <!-- Поле выбора категории под поиском -->
-                            <div class="filter-group category-filter-group">
-                                <select name="category" id="category">
-                                    <option value="">Все категории</option>
-                                    {% for category in categories %}
-                                        <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
-                                            {{ category.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="filter-sort-container">
-                                <button type="button" class="filter-sort-button">Фильтровать</button>
-                                <div class="filter-sort-dropdown">
-                                    <ul class="sort-options">
-                                        <li data-value="price">По возрастанию цены</li>
-                                        <li data-value="-price">По убыванию цены</li>
-                                        <li data-value="in_stock">В наличии</li>
-                                        <li data-value="-in_stock">Не в наличии</li>
-                                    </ul>
+    {% if user.is_authenticated %}
+        <div class="row">
+            <!-- Фильтры в левом углу -->
+            <div class="col-md-3">
+                <div class="filters">
+                    <h3>Фильтры</h3>
+                    <form method="get" class="filter-form">
+                        <!-- Поиск по названию и кнопка "Фильтровать" -->
+                        <div class="filter-group search-filter-group">
+                            <div class="search-container">
+                                <input type="text" name="search" id="search" value="{{ search_query }}" placeholder="Введите название">
+                                <!-- Поле выбора категории под поиском -->
+                                <div class="filter-group category-filter-group">
+                                    <select name="category" id="category">
+                                        <option value="">Все категории</option>
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ category.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
-                            </div>
-                            <!-- Кнопки "Применить" и "Сбросить" -->
-                            <div class="filter-buttons">
-                                <button type="button" class="btn btn-primary btn-apply" onclick="applyFilters()">Применить</button>
-                                <button type="button" class="btn btn-primary btn-reset" onclick="resetFilters()">Сбросить</button>
+                                <div class="filter-sort-container">
+                                    <button type="button" class="filter-sort-button">Фильтровать</button>
+                                    <div class="filter-sort-dropdown">
+                                        <ul class="sort-options">
+                                            <li data-value="price">По возрастанию цены</li>
+                                            <li data-value="-price">По убыванию цены</li>
+                                            <li data-value="in_stock">В наличии</li>
+                                            <li data-value="-in_stock">Не в наличии</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <!-- Кнопки "Применить" и "Сбросить" -->
+                                <div class="filter-buttons">
+                                    <button type="button" class="btn btn-primary btn-apply" onclick="applyFilters()">Применить</button>
+                                    <button type="button" class="btn btn-primary btn-reset" onclick="resetFilters()">Сбросить</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <!-- Карточки товаров -->
-        <div class="col-md-9">
-            <h2>Каталог товаров</h2>
-            <div class="product-grid" id="product-grid">
-                {% for item in products_with_discount %}
-                    {% with product=item.product %}
-                        <div class="product-card">
-                            <!-- Изображение -->
-                            {% if product.image %}
-                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                            {% else %}
-                                <img src="https://via.placeholder.com/200" alt="Нет изображения">
-                            {% endif %}
-
-                            <!-- Процент скидки в правом верхнем углу -->
-                            {% if product.discount_price and item.discount_percent %}
-                                <div class="discount-percentage">
-                                    -{{ item.discount_percent }}%
-                                </div>
-                            {% endif %}
-
-                            <!-- Название товара и статус -->
-                            <div class="product-info">
-                                <h3>{{ product.name }}</h3>
-                                <div class="availability {% if product.in_stock %}in-stock{% else %}out-of-stock{% endif %}">
-                                    {% if product.in_stock %}В наличии{% else %}Нет в наличии{% endif %}
-                                </div>
-                            </div>
-
-                            <!-- Цены -->
-                            <div class="price-container">
-                                {% if product.discount_price %}
-                                    <span class="discounted-price">{{ product.discount_price }} $</span>
-                                    <span class="original-price">{{ product.price }} $</span>
+            <!-- Карточки товаров -->
+            <div class="col-md-9">
+                <h2>Каталог товаров</h2>
+                <div class="product-grid" id="product-grid">
+                    {% for item in products_with_discount %}
+                        {% with product=item.product %}
+                            <div class="product-card">
+                                <!-- Изображение -->
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" data-image="{{ product.image.url }}">
                                 {% else %}
-                                    <span class="price">{{ product.price }} $</span>
+                                    <img src="https://via.placeholder.com/200" alt="Нет изображения" data-image="https://via.placeholder.com/200">
                                 {% endif %}
-                            </div>
 
-                            <!-- Кнопка "В корзину" -->
-                            <button class="btn btn-add-to-cart" {% if not product.in_stock %}disabled{% endif %}>
-                                <i class="fas fa-cart-plus"></i> В корзину
-                            </button>
-                        </div>
-                    {% endwith %}
-                {% empty %}
-                    <p>Товары не найдены.</p>
-                {% endfor %}
+                                <!-- Процент скидки в правом верхнем углу -->
+                                {% if product.discount_price and item.discount_percent %}
+                                    <div class="discount-percentage">
+                                        -{{ item.discount_percent }}%
+                                    </div>
+                                {% endif %}
+
+                                <!-- Название товара и статус -->
+                                <div class="product-info">
+                                    <h3>{{ product.name }}</h3>
+                                    <div class="availability {% if product.in_stock %}in-stock{% else %}out-of-stock{% endif %}">
+                                        {% if product.in_stock %}В наличии{% else %}Нет в наличии{% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Цены -->
+                                <div class="price-container">
+                                    {% if product.discount_price %}
+                                        <span class="discounted-price">{{ product.discount_price }} $</span>
+                                        <span class="original-price">{{ product.price }} $</span>
+                                    {% else %}
+                                        <span class="price">{{ product.price }} $</span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Кнопка "В корзину" -->
+                                <button class="btn btn-add-to-cart" data-product-id="{{ product.id }}" {% if not product.in_stock %}disabled{% endif %}>
+                                    <i class="fas fa-cart-plus"></i> В корзину
+                                </button>
+                            </div>
+                        {% endwith %}
+                    {% empty %}
+                        <p>Товары не найдены.</p>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-    </div>
+    {% else %}
+        <div class="text-center">
+            <h2>Добро пожаловать!</h2>
+            <p>Пожалуйста, <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">войдите</a> или <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">зарегистрируйтесь</a>, чтобы увидеть каталог товаров.</p>
+        </div>
+    {% endif %}
 
     <style>
         /* Стили для фильтров */
@@ -131,10 +138,10 @@
             transform: translateY(-3px);
         }
         .filters h3 {
-            color: #2d3748;
+            color: #333;
             margin-bottom: 20px;
             font-size: 22px;
-            font-weight: 600;
+            font-weight: 500;
         }
         .filter-form {
             display: flex;
@@ -162,7 +169,7 @@
             width: 100%;
             padding: 10px 15px;
             border-radius: 8px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #d1d5db;
             font-size: 14px;
             background-color: #f7fafc;
             transition: all 0.3s ease;
@@ -172,17 +179,78 @@
         }
         .filter-group input:focus,
         .filter-group select:focus {
-            the: none;
-            border-color: rgb(2, 2, 2);
-            box-shadow: 0 0 8px rgba(49, 130, 206, 0.2);
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 8px rgba(26, 115, 232, 0.2);
             background-color: #fff;
         }
         .filter-group input::placeholder {
-            color: #a0aec0;
+            color: #6b7280;
         }
         .search-container input { animation-delay: 0.1s; }
         .category-filter-group select { animation-delay: 0.2s; }
         .filter-sort-container { animation-delay: 0.3s; }
+
+        /* Стили для кнопки "Фильтровать" */
+        .filter-sort-container {
+            position: relative;
+            display: inline-block;
+        }
+        .filter-sort-button {
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #333;
+            background-color: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: slideUp 0.5s ease forwards;
+        }
+        .filter-sort-button:hover {
+            background-color: #e5e7eb;
+        }
+        .filter-sort-button:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 5px rgba(26, 115, 232, 0.3);
+        }
+        .filter-sort-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: none;
+            min-width: 150px;
+        }
+        .filter-sort-dropdown.show {
+            display: block;
+        }
+        .sort-options {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sort-options li {
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .sort-options li:hover {
+            background-color: #f1f5f9;
+        }
+        .sort-options li.selected {
+            background-color: #e5e7eb;
+            font-weight: 500;
+        }
 
         /* Стили для кнопок "Применить" и "Сбросить" */
         .filter-buttons {
@@ -192,77 +260,6 @@
         }
         .btn-apply, .btn-reset {
             flex: 1;
-        }
-
-        /* Стили для кнопки "Фильтровать" и выпадающего списка сортировки */
-        .filter-sort-container {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-        .filter-sort-button {
-            width: 100%;
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            font-size: 14px;
-            color: rgb(0, 0, 0);
-            background-color: #edf2f7;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            opacity: 0;
-            transform: translateY(10px);
-            animation: slideUp 0.5s ease forwards;
-        }
-        .filter-sort-button:hover {
-            background-color: #e2e8f0;
-        }
-        .filter-sort-button:focus {
-            outline: none;
-            border-color: rgb(1, 1, 1);
-            box-shadow: 0 0 8px rgba(49, 130, 206, 0.2);
-        }
-        .filter-sort-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background-color: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            display: none;
-            overflow: hidden;
-            transform: scaleY(0);
-            transform-origin: top;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            opacity: 0;
-        }
-        .filter-sort-dropdown.show {
-            display: block;
-            transform: scaleY(1);
-            opacity: 1;
-        }
-        .sort-options {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .sort-options li {
-            padding: 10px 15px;
-            font-size: 14px;
-            color: #2d3748;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .sort-options li:hover {
-            background-color: #edf2f7;
-            color: #3182ce;
-        }
-        .sort-options li.selected {
-            background-color: #e2e8f0;
-            font-weight: 500;
         }
 
         /* Стили для карточек товаров */
@@ -309,7 +306,7 @@
         .product-card h3 {
             font-size: 16px;
             margin: 0 0 5px 0;
-            color: #2d3748;
+            color: #333;
             font-weight: 500;
         }
         .product-card .availability {
@@ -331,24 +328,24 @@
         }
         .product-card .price {
             font-size: 16px;
-            color: #2d3748;
+            color: #333;
             font-weight: bold;
         }
         .product-card .original-price {
             font-size: 14px;
-            color: #a0aec0;
+            color: #6b7280;
             text-decoration: line-through;
         }
         .product-card .discounted-price {
             font-size: 16px;
-            color: #2d3748;
+            color: #333;
             font-weight: bold;
         }
         .product-card .discount-percentage {
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: #f6ad55;
+            background-color: #f39c12; /* Жёлто-оранжевый цвет */
             color: white;
             font-size: 12px;
             font-weight: bold;
@@ -378,7 +375,8 @@
         .btn-add-to-cart i {
             font-size: 16px;
         }
-       
+        .btn-add-to-cart:active {
+            animation: liftEffect 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Эффект поднятия при нажатии, как у карточки */
         }
         .btn-add-to-cart:disabled {
             background-color: #ccc;
@@ -411,41 +409,6 @@
                 transform: translateY(0);
             }
         }
-
-        /* Стили для пагинации */
-        .pagination-container {
-            max-width: 1400px;
-            margin: 20px auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-        }
-        .page-link {
-            padding: 8px 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            color: #2d3748;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        .page-link:hover {
-            background-color: #edf2f7;
-            border-color: #cbd5e0;
-            transform: translateY(-2px);
-        }
-        .page-link.current {
-            background-color: #3182ce;
-            color: white;
-            border-color: #3182ce;
-            font-weight: 500;
-        }
     </style>
 
     <script>
@@ -474,7 +437,7 @@
                             card.className = 'product-card';
                             card.style.animationDelay = `${index * 0.1}s`;
                             card.innerHTML = `
-                                <img src="${item.image}" alt="${item.name}">
+                                <img src="${item.image}" alt="${item.name}" data-image="${item.image}">
                                 ${item.discount_percent ? `<div class="discount-percentage">-${item.discount_percent}%</div>` : ''}
                                 <div class="product-info">
                                     <h3>${item.name}</h3>
@@ -490,12 +453,14 @@
                                         <span class="price">${item.price} $</span>
                                     `}
                                 </div>
-                                <button class="btn btn-add-to-cart" ${item.in_stock ? '' : 'disabled'}>
+                                <button class="btn btn-add-to-cart" data-product-id="${item.id}" ${item.in_stock ? '' : 'disabled'}>
                                     <i class="fas fa-cart-plus"></i> В корзину
                                 </button>
                             `;
                             productGrid.appendChild(card);
                         });
+                        // Перепривязываем обработчики событий для новых кнопок
+                        bindAddToCartButtons();
                     }
                     productGrid.style.opacity = '1';
                 }, 300);
@@ -532,52 +497,220 @@
             window.location.href = '/';
         }
 
-        // Плавная анимация и динамическое обновление
-        document.addEventListener('DOMContentLoaded', function() {
-            const productGrid = document.querySelector('.product-grid');
-            const cards = document.querySelectorAll('.product-card');
+        // Функция для анимации "полета" товара в корзину с закручиванием
+        function animateFlyToCart(button, imageSrc) {
+            const cartIcon = document.getElementById('cart-toggle');
+            const buttonRect = button.getBoundingClientRect();
+            const cartRect = cartIcon.getBoundingClientRect();
 
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
+            const flyingItem = document.createElement('div');
+            flyingItem.className = 'flying-item';
+            flyingItem.style.backgroundImage = `url(${imageSrc})`;
+            flyingItem.style.left = `${buttonRect.left + buttonRect.width / 2 - 25}px`;
+            flyingItem.style.top = `${buttonRect.top + buttonRect.height / 2 - 25}px`;
+
+            document.body.appendChild(flyingItem);
+
+            setTimeout(() => {
+                flyingItem.style.left = `${cartRect.left + cartRect.width / 2 - 25}px`;
+                flyingItem.style.top = `${cartRect.top + cartRect.height / 2 - 25}px`;
+                flyingItem.style.opacity = '0';
+                flyingItem.style.transform = 'scale(0.5) rotate(360deg)';
+            }, 50);
+
+            setTimeout(() => {
+                flyingItem.remove();
+            }, 600);
+        }
+
+        // Функция для добавления товара в корзину
+        function addToCart(productId, button) {
+            const imageSrc = button.closest('.product-card').querySelector('img').dataset.image;
+            animateFlyToCart(button, imageSrc);
+
+            fetch('/add-to-cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: `product_id=${productId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('cart-count').textContent = data.total_items;
+                    updateCartDisplay(data.cart_items, data.cart_total);
+                    openCart();
+                } else {
+                    console.error('Ошибка при добавлении товара в корзину:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
             });
+        }
 
-            let debounceTimeout;
-            document.getElementById('search').addEventListener('input', function() {
-                clearTimeout(debounceTimeout);
-                debounceTimeout = setTimeout(updateFilters, 300);
+        // Функция для удаления товара из корзины
+        function removeFromCart(cartItemId) {
+            fetch('/remove-from-cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: `cart_item_id=${cartItemId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('cart-count').textContent = data.total_items;
+                    updateCartDisplay(data.cart_items, data.cart_total);
+                } else {
+                    console.error('Ошибка при удалении товара из корзины:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
             });
+        }
 
-            document.getElementById('category').addEventListener('change', updateFilters);
+        // Функция для получения CSRF-токена
+        function getCsrfToken() {
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+            return cookieValue;
+        }
 
-            const filterSortButton = document.querySelector('.filter-sort-button');
-            const filterSortDropdown = document.querySelector('.filter-sort-dropdown');
-            const sortOptions = document.querySelectorAll('.sort-options li');
+        // Функция для обновления отображения корзины
+        function updateCartDisplay(cartItems, cartTotal) {
+            const cartItemsContainer = document.getElementById('cart-items');
+            cartItemsContainer.innerHTML = '';
+            if (cartItems.length === 0) {
+                cartItemsContainer.innerHTML = '<p>Корзина пуста.</p>';
+            } else {
+                cartItems.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'cart-item';
+                    itemElement.innerHTML = `
+                        <img src="${item.image}" alt="${item.product_name}">
+                        <div class="cart-item-info">
+                            <h4>${item.product_name}</h4>
+                            <p>${item.quantity} x ${item.price} $ = ${item.total_price} $</p>
+                            <button class="btn-remove-item" data-cart-item-id="${item.id}">Удалить</button>
+                        </div>
+                    `;
+                    cartItemsContainer.appendChild(itemElement);
+                });
 
-            filterSortButton.addEventListener('click', function() {
-                filterSortDropdown.classList.toggle('show');
-            });
+                // Привязываем обработчики для кнопок удаления
+                document.querySelectorAll('.btn-remove-item').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const cartItemId = this.dataset.cartItemId;
+                        removeFromCart(cartItemId);
+                    });
+                });
+            }
+            document.getElementById('cart-total').textContent = `Итого: ${cartTotal} $`;
+        }
 
-            sortOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    sortOptions.forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                    filterSortDropdown.classList.remove('show');
-                    updateFilters();
+        // Функция для открытия корзины
+        function openCart() {
+            const cartSidebar = document.getElementById('cart-sidebar');
+            const cartOverlay = document.getElementById('cart-overlay');
+            cartSidebar.classList.add('active');
+            cartOverlay.classList.add('active');
+        }
+
+        // Функция для закрытия корзины
+        function closeCart() {
+            const cartSidebar = document.getElementById('cart-sidebar');
+            const cartOverlay = document.getElementById('cart-overlay');
+            cartSidebar.classList.remove('active');
+            cartOverlay.classList.remove('active');
+        }
+
+        // Привязка обработчиков событий для кнопок "В корзину"
+        function bindAddToCartButtons() {
+            document.querySelectorAll('.btn-add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.productId;
+                    addToCart(productId, this);
                 });
             });
+        }
 
-            document.addEventListener('click', function(event) {
-                if (!filterSortButton.contains(event.target) && !filterSortDropdown.contains(event.target)) {
-                    filterSortDropdown.classList.remove('show');
-                }
-            });
+        // Плавная анимация и динамическое обновление
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if user.is_authenticated %}
+                const productGrid = document.querySelector('.product-grid');
+                const cards = document.querySelectorAll('.product-card');
 
-            const currentSort = "{{ sort_by }}";
-            sortOptions.forEach(option => {
-                if (option.dataset.value === currentSort) {
-                    option.classList.add('selected');
-                }
-            });
+                cards.forEach((card, index) => {
+                    card.style.animationDelay = `${index * 0.1}s`;
+                });
+
+                let debounceTimeout;
+                document.getElementById('search').addEventListener('input', function() {
+                    clearTimeout(debounceTimeout);
+                    debounceTimeout = setTimeout(updateFilters, 300);
+                });
+
+                document.getElementById('category').addEventListener('change', updateFilters);
+
+                const filterSortButton = document.querySelector('.filter-sort-button');
+                const filterSortDropdown = document.querySelector('.filter-sort-dropdown');
+                const sortOptions = document.querySelectorAll('.sort-options li');
+
+                filterSortButton.addEventListener('click', function() {
+                    filterSortDropdown.classList.toggle('show');
+                });
+
+                sortOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        sortOptions.forEach(opt => opt.classList.remove('selected'));
+                        this.classList.add('selected');
+                        filterSortDropdown.classList.remove('show');
+                        updateFilters();
+                    });
+                });
+
+                document.addEventListener('click', function(event) {
+                    if (!filterSortButton.contains(event.target) && !filterSortDropdown.contains(event.target)) {
+                        filterSortDropdown.classList.remove('show');
+                    }
+                });
+
+                const currentSort = "{{ sort_by }}";
+                sortOptions.forEach(option => {
+                    if (option.dataset.value === currentSort) {
+                        option.classList.add('selected');
+                    }
+                });
+
+                // Инициализация корзины
+                fetch('/get-cart/', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('cart-count').textContent = data.total_items;
+                    updateCartDisplay(data.cart_items, data.cart_total);
+                });
+
+                // Обработчики для корзины
+                document.getElementById('cart-toggle').addEventListener('click', openCart);
+                document.getElementById('cart-overlay').addEventListener('click', closeCart);
+
+                // Привязка обработчиков для кнопок "В корзину"
+                bindAddToCartButtons();
+            {% endif %}
         });
     </script>
 {% endblock %}
