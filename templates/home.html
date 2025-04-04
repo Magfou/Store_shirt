@@ -1,76 +1,208 @@
 {% extends 'base.html' %}
 
+{% block pagination %}
+    <!-- Компактное меню пагинации -->
+    <div class="pagination-container">
+        <form method="get" class="pagination-form">
+            <!-- Скрытые поля для сохранения текущих фильтров -->
+            <input type="hidden" name="search" value="{{ search_query }}">
+            <input type="hidden" name="sort" value="{{ sort_by }}">
+            <select name="per_page" id="per_page" onchange="this.form.submit()">
+                <option value="10" {% if per_page == '10' %}selected{% endif %}>10</option>
+                <option value="20" {% if per_page == '20' %}selected{% endif %}>20</option>
+                <option value="50" {% if per_page == '50' %}selected{% endif %}>50</option>
+            </select>
+        </form>
+    </div>
+{% endblock %}
+
 {% block content %}
-    <h2>Каталог товаров</h2>
-    <div class="product-grid">
-        {% for item in products_with_discount %}
-            {% with product=item.product %}
-                <div class="product-card">
-                    <!-- Изображение -->
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                    {% else %}
-                        <img src="https://via.placeholder.com/200" alt="Нет изображения">
-                    {% endif %}
-
-                    <!-- Процент скидки в правом верхнем углу -->
-                    {% if product.discount_price and item.discount_percent %}
-                        <div class="discount-percentage">
-                            -{{ item.discount_percent }}%
-                        </div>
-                    {% endif %}
-
-                    <!-- Название товара и статус -->
-                    <div class="product-info">
-                        <h3>{{ product.name }}</h3>
-                        <div class="availability {% if product.in_stock %}in-stock{% else %}out-of-stock{% endif %}">
-                            {% if product.in_stock %}В наличии{% else %}Нет в наличии{% endif %}
+    <div class="row">
+        <!-- Фильтры в левом углу -->
+        <div class="col-md-3">
+            <div class="filters">
+                <h3>Фильтры</h3>
+                <form method="get" class="filter-form">
+                    <!-- Поиск по названию и кнопка "Фильтровать" -->
+                    <div class="filter-group search-filter-group">
+                        <div class="search-container">
+                            <input type="text" name="search" id="search" value="{{ search_query }}" placeholder="Введите название">
+                            <div class="filter-sort-container">
+                                <button type="button" class="filter-sort-button">Фильтровать</button>
+                                <div class="filter-sort-dropdown">
+                                    <select name="sort" id="sort" onchange="this.form.submit()">
+                                        <option value="price" {% if sort_by == 'price' %}selected{% endif %}>Цена: по возрастанию</option>
+                                        <option value="-price" {% if sort_by == '-price' %}selected{% endif %}>Цена: по убыванию</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Цены -->
-                    <div class="price-container">
-                        {% if product.discount_price %}
-                            <span class="discounted-price">{{ product.discount_price }} $</span>
-                            <span class="original-price">{{ product.price }} $</span>
-                        {% else %}
-                            <span class="price">{{ product.price }} $</span>
-                        {% endif %}
-                    </div>
+                    <button type="submit" class="btn btn-primary">Применить</button>
+                </form>
+            </div>
+        </div>
 
-                    <!-- Отзывы -->
-                    <div class="rating-reviews">
-                        <i class="fas fa-comment"></i>
-                        <span class="reviews-count">0 отзывов</span>
-                    </div>
+        <!-- Карточки товаров -->
+        <div class="col-md-9">
+            <h2>Каталог товаров</h2>
+            <div class="product-grid">
+                {% for item in products_with_discount %}
+                    {% with product=item.product %}
+                        <div class="product-card">
+                            <!-- Изображение -->
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                            {% else %}
+                                <img src="https://via.placeholder.com/200" alt="Нет изображения">
+                            {% endif %}
 
-                    <!-- Кнопка "В корзину" в левом нижнем углу -->
-                    <button class="btn-add-to-cart" {% if not product.in_stock %}disabled{% endif %}>
-                        В корзину
-                    </button>
-                </div>
-            {% endwith %}
-        {% endfor %}
+                            <!-- Процент скидки в правом верхнем углу -->
+                            {% if product.discount_price and item.discount_percent %}
+                                <div class="discount-percentage">
+                                    -{{ item.discount_percent }}%
+                                </div>
+                            {% endif %}
+
+                            <!-- Название товара и статус -->
+                            <div class="product-info">
+                                <h3>{{ product.name }}</h3>
+                                <div class="availability {% if product.in_stock %}in-stock{% else %}out-of-stock{% endif %}">
+                                    {% if product.in_stock %}В наличии{% else %}Нет в наличии{% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Цены -->
+                            <div class="price-container">
+                                {% if product.discount_price %}
+                                    <span class="discounted-price">{{ product.discount_price }} $</span>
+                                    <span class="original-price">{{ product.price }} $</span>
+                                {% else %}
+                                    <span class="price">{{ product.price }} $</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Отзывы -->
+                            <div class="rating-reviews">
+                                <i class="fas fa-comment"></i>
+                                <span class="reviews-count">0 отзывов</span>
+                            </div>
+
+                            <!-- Кнопка "В корзину" в левом нижнем углу -->
+                            <button class="btn-add-to-cart" {% if not product.in_stock %}disabled{% endif %}>
+                                В корзину
+                            </button>
+                        </div>
+                    {% endwith %}
+                {% empty %}
+                    <p>Товары не найдены.</p>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
     <style>
+        /* Стили для фильтров */
+        .filters {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .filters h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .filter-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .search-filter-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .search-container input {
+            flex: 1;
+            padding: 6px 10px;
+            border-radius: 5px;
+            border: 1px solid #d1d5db;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: slideUp 0.5s ease forwards;
+        }
+        .filter-group input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 5px rgba(26, 115, 232, 0.3);
+        }
+        .filter-group input::placeholder {
+            color: #6b7280;
+        }
+        .btn-primary {
+            background-color: #333;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 25px;
+            color: white;
+            font-size: 12px;
+            transition: background-color 0.3s;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: slideUp 0.5s ease forwards;
+            animation-delay: 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #555;
+        }
+
         /* Стили для карточек товаров */
         .product-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 15px;
             justify-content: space-between;
         }
         .product-card {
             position: relative;
-            flex: 0 0 calc(20% - 16px);
+            flex: 0 0 calc(20% - 12px); /* 5 карточек в ряд */
             background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            padding: 20px;
+            padding: 15px;
             text-align: left;
-            min-height: 400px;
+            min-height: 350px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .product-card:nth-child(1) { animation-delay: 0.1s; }
+        .product-card:nth-child(2) { animation-delay: 0.2s; }
+        .product-card:nth-child(3) { animation-delay: 0.3s; }
+        .product-card:nth-child(4) { animation-delay: 0.4s; }
+        .product-card:nth-child(5) { animation-delay: 0.5s; }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         .product-card:hover {
             transform: translateY(-5px);
@@ -79,23 +211,23 @@
         }
         .product-card img {
             width: 100%;
-            height: 200px;
+            height: 180px;
             object-fit: contain;
-            border-radius: 8px;
+            border-radius: 6px;
         }
         .product-card .product-info {
-            margin: 10px 0;
+            margin: 8px 0;
         }
         .product-card h3 {
-            font-size: 18px;
-            margin: 0 0 5px 0;
+            font-size: 16px;
+            margin: 0 0 4px 0;
             color: #333;
             font-weight: 500;
         }
         .product-card .availability {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .product-card .availability.in-stock {
             color: #28a745;
@@ -106,55 +238,55 @@
         .product-card .price-container {
             display: flex;
             align-items: center;
-            gap: 5px;
-            margin-bottom: 10px;
+            gap: 4px;
+            margin-bottom: 8px;
         }
         .product-card .price {
-            font-size: 18px;
+            font-size: 16px;
             color: #333;
             font-weight: bold;
         }
         .product-card .original-price {
-            font-size: 16px;
+            font-size: 14px;
             color: #999;
             text-decoration: line-through;
         }
         .product-card .discounted-price {
-            font-size: 18px;
+            font-size: 16px;
             color: #333;
             font-weight: bold;
         }
         .product-card .discount-percentage {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 8px;
+            right: 8px;
             background-color: #f5a623;
             color: white;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 15px;
+            padding: 4px 8px;
+            border-radius: 12px;
         }
         .product-card .rating-reviews {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 14px;
+            gap: 4px;
+            font-size: 12px;
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .product-card .rating-reviews .fa-comment {
             color: #999;
         }
         .product-card .btn-add-to-cart {
             position: absolute;
-            bottom: 10px;
-            left: 10px;
+            bottom: 8px;
+            left: 8px;
             background-color: #333;
             border: none;
-            padding: 8px 16px;
-            font-size: 14px;
-            border-radius: 25px;
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 20px;
             color: white;
             transition: background-color 0.3s;
             width: auto;
@@ -168,4 +300,48 @@
             cursor: not-allowed;
         }
     </style>
+
+    <script>
+        // Плавная анимация при фильтрации и пагинации
+        document.addEventListener('DOMContentLoaded', function() {
+            const productGrid = document.querySelector('.product-grid');
+            const cards = document.querySelectorAll('.product-card');
+
+            // Анимация при загрузке
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+
+            // Плавное обновление при фильтрации
+            document.querySelector('.filter-form').addEventListener('submit', function() {
+                productGrid.style.opacity = '0';
+                setTimeout(() => {
+                    productGrid.style.opacity = '1';
+                }, 300);
+            });
+
+            // Плавное обновление при изменении пагинации
+            document.querySelector('.pagination-form select').addEventListener('change', function() {
+                productGrid.style.opacity = '0';
+                setTimeout(() => {
+                    productGrid.style.opacity = '1';
+                }, 300);
+            });
+
+            // Показ/скрытие выпадающего списка сортировки
+            const filterSortButton = document.querySelector('.filter-sort-button');
+            const filterSortDropdown = document.querySelector('.filter-sort-dropdown');
+
+            filterSortButton.addEventListener('click', function() {
+                filterSortDropdown.classList.toggle('show');
+            });
+
+            // Закрытие выпадающего списка при клике вне его
+            document.addEventListener('click', function(event) {
+                if (!filterSortButton.contains(event.target) && !filterSortDropdown.contains(event.target)) {
+                    filterSortDropdown.classList.remove('show');
+                }
+            });
+        });
+    </script>
 {% endblock %}
