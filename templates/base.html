@@ -263,50 +263,34 @@
                 transform: translateY(-10px);
             }
         }
-        /* Стили для компактного меню пагинации */
+        /* Стили для пагинации */
         .pagination-container {
             max-width: 1400px;
-            margin: 10px auto;
+            margin: 20px auto;
             display: flex;
             justify-content: center;
             align-items: center;
         }
-        .pagination-form {
-            display: inline-block;
+        .pagination {
+            display: flex;
+            gap: 5px;
         }
-        .pagination-container select {
-            padding: 4px 20px 4px 8px;
+        .pagination a, .pagination span {
+            padding: 8px 12px;
             border: 1px solid #d1d5db;
             border-radius: 5px;
-            font-size: 12px;
+            font-size: 14px;
             color: #333;
-            background-color: #f1f5f9;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            cursor: pointer;
+            text-decoration: none;
             transition: all 0.3s ease;
-            opacity: 0;
-            transform: translateY(10px);
-            animation: slideUp 0.5s ease forwards;
         }
-        .pagination-container select:focus {
-            outline: none;
+        .pagination a:hover {
+            background-color: #e5e7eb;
+        }
+        .pagination .current {
+            background-color: #1a73e8;
+            color: white;
             border-color: #1a73e8;
-            box-shadow: 0 0 5px rgba(26, 115, 232, 0.3);
-        }
-        .pagination-container {
-            position: relative;
-        }
-        .pagination-container::after {
-            content: '▼';
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 10px;
-            color: #333;
-            pointer-events: none;
         }
         /* Стили для кнопки "Фильтровать" и выпадающего списка сортировки */
         .filter-sort-container {
@@ -400,7 +384,7 @@
                     <!-- Корзина (видна только авторизованным) -->
                     {% if user.is_authenticated %}
                         <a href="#" class="cart-icon">
-                            <img src="{% static '/drawer.png' %}" alt="Корзина">
+                            <img src="{% static '/images/drawer.png' %}" alt="Корзина">
                             <span class="badge">0</span>
                         </a>
                     {% endif %}
@@ -532,9 +516,11 @@
         </div>
     </div>
 
-    <!-- Контейнер для пагинации -->
-    {% block pagination %}
-    {% endblock %}
+    <!-- Контейнер для пагинации (только для авторизованных пользователей) -->
+    {% if user.is_authenticated %}
+        {% block pagination %}
+        {% endblock %}
+    {% endif %}
 
     <!-- Основной контент -->
     <div class="container">
