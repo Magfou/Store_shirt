@@ -1,3 +1,4 @@
+# store/views.py
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -23,7 +24,12 @@ def home(request):
     if category_id:
         products = products.filter(category_id=category_id)
 
-    if sort_by:
+    # Исправляем логику фильтрации по наличию
+    if sort_by == 'in_stock':
+        products = products.filter(in_stock=True)
+    elif sort_by == '-in_stock':
+        products = products.filter(in_stock=False)
+    else:
         products = products.order_by(sort_by)
 
     products_with_discount = []
@@ -166,20 +172,18 @@ def remove_from_cart(request):
 
 @login_required
 def checkout(request):
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.method == 'POST':
         try:
             cart = Cart.objects.get(user=request.user)
             if not cart.items.exists():
-                return JsonResponse({'success': False, 'error': 'Cart is empty'}, status=400)
+                messages.error(request, 'Корзина пуста.')
+                return redirect('home')
 
-            # Создаём заказ
             order = Order.objects.create(
                 user=request.user,
                 total_price=cart.total_price,
-                status='completed'  # Для простоты сразу ставим "completed"
             )
 
-            # Переносим элементы корзины в заказ
             for cart_item in cart.items.all():
                 OrderItem.objects.create(
                     order=order,
@@ -188,17 +192,14 @@ def checkout(request):
                     price=cart_item.product.discount_price if cart_item.product.discount_price else cart_item.product.price
                 )
 
-            # Очищаем корзину
             cart.items.all().delete()
 
-            return JsonResponse({
-                'success': True,
-                'order_id': order.id,
-                'total_price': float(order.total_price),
-            })
+            messages.success(request, f'Заказ #{order.id} успешно оформлен! Сумма: {order.total_price} $')
+            return redirect('home')
         except Cart.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Cart not found'}, status=404)
-    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
+            messages.error(request, 'Корзина не найдена.')
+            return redirect('home')
+    return redirect('home')
 
 def login_view(request):
     if request.method == 'POST':

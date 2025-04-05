@@ -1,3 +1,4 @@
+<!-- templates/home.html -->
 {% extends 'base.html' %}
 
 {% block pagination %}
@@ -46,7 +47,9 @@
                                     </select>
                                 </div>
                                 <div class="filter-sort-container">
-                                    <button type="button" class="filter-sort-button">Фильтровать</button>
+                                    <button type="button" class="filter-sort-button">
+                                        <i class="fas fa-filter"></i> Фильтровать
+                                    </button>
                                     <div class="filter-sort-dropdown">
                                         <ul class="sort-options">
                                             <li data-value="price">По возрастанию цены</li>
@@ -131,7 +134,7 @@
             background-color: #fff;
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
         }
         .filters:hover {
@@ -191,31 +194,39 @@
         .category-filter-group select { animation-delay: 0.2s; }
         .filter-sort-container { animation-delay: 0.3s; }
 
-        /* Стили для кнопки "Фильтровать" */
+        /* Обновлённые стили для кнопки "Фильтровать" */
         .filter-sort-container {
             position: relative;
             display: inline-block;
         }
         .filter-sort-button {
-            padding: 4px 8px;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            font-size: 12px;
-            color: #333;
-            background-color: #f1f5f9;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            color: white;
+            background: linear-gradient(90deg, #333, #555); /* Градиент в стиле сайта */
             cursor: pointer;
             transition: all 0.3s ease;
             opacity: 0;
             transform: translateY(10px);
             animation: slideUp 0.5s ease forwards;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .filter-sort-button i {
+            font-size: 14px;
         }
         .filter-sort-button:hover {
-            background-color: #e5e7eb;
+            background: linear-gradient(90deg, #555, #777);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         .filter-sort-button:focus {
             outline: none;
-            border-color: #1a73e8;
-            box-shadow: 0 0 5px rgba(26, 115, 232, 0.3);
+            box-shadow: 0 0 5px rgba(26, 115, 232, 0.5);
         }
         .filter-sort-dropdown {
             position: absolute;
@@ -223,11 +234,12 @@
             left: 0;
             background-color: #fff;
             border: 1px solid #d1d5db;
-            border-radius: 5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             z-index: 1000;
             display: none;
-            min-width: 150px;
+            min-width: 200px;
+            overflow: hidden;
         }
         .filter-sort-dropdown.show {
             display: block;
@@ -238,17 +250,23 @@
             margin: 0;
         }
         .sort-options li {
-            padding: 8px 12px;
-            font-size: 12px;
+            padding: 12px 16px;
+            font-size: 14px;
             color: #333;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .sort-options li:last-child {
+            border-bottom: none;
         }
         .sort-options li:hover {
             background-color: #f1f5f9;
+            transform: translateX(5px);
         }
         .sort-options li.selected {
-            background-color: #e5e7eb;
+            background: linear-gradient(90deg, #333, #555);
+            color: white;
             font-weight: 500;
         }
 
