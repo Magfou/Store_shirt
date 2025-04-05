@@ -1,0 +1,55 @@
+<!-- templates/register_modal.html -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+   <div class="modal-dialog">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h5 class="modal-title" id="registerModalLabel">Sign Up</h5>
+               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+           </div>
+           <div class="modal-body">
+               <form method="post" action="{% url 'register' %}" id="registerForm">
+                   {% csrf_token %}
+                   <div class="form-group">
+                       <input type="text" name="username" id="id_reg_username" placeholder="Your Email" value="{{ register_form.username.value|default_if_none:'' }}" required>
+                       <label for="id_reg_username">Email</label>
+                       {% if register_form.username.errors %}
+                           <div class="error-message">{{ register_form.username.errors }}</div>
+                       {% endif %}
+                   </div>
+                   <div class="form-group">
+                       <input type="text" name="name" id="id_name" placeholder="Name" value="{{ register_form.name.value|default_if_none:'' }}">
+                       <label for="id_name">Имя</label>
+                   </div>
+                   <div class="form-group">
+                       <input type="password" name="password1" id="id_password1" placeholder="Password" required>
+                       <label for="id_password1">Пароль</label>
+                       {% if register_form.password1.errors %}
+                           <div class="error-message">{{ register_form.password1.errors }}</div>
+                       {% endif %}
+                   </div>
+                   <div class="form-group">
+                       <input type="password" name="password2" id="id_password2" placeholder="Confirm Password" required>
+                       <label for="id_password2">Подтвердите пароль</label>
+                       {% if register_form.password2.errors %}
+                           <div class="error-message">{{ register_form.password2.errors }}</div>
+                       {% endif %}
+                       {% if register_form.non_field_errors %}
+                           <div class="error-message">{{ register_form.non_field_errors }}</div>
+                       {% endif %}
+                   </div>
+                   <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+               </form>
+               <div class="text-center my-4">
+                   <p class="text-sm text-gray-600">Или зарегистрируйтесь через социальные сети</p>
+               </div>
+               <div class="social-buttons">
+                   <button><i class="fab fa-facebook-f"></i> Facebook</button>
+                   <button><i class="fab fa-twitter"></i> Twitter</button>
+               </div>
+           </div>
+           <div class="modal-footer">
+               <p>Уже есть аккаунт? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Войдите</a></p>
+           </div>
+       </div>
+   </div>
+</div>

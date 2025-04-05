@@ -1,0 +1,48 @@
+<!-- templates/cart.html -->
+<div class="cart-overlay" id="cart-overlay"></div>
+<div class="cart-sidebar" id="cart-sidebar">
+    <h2>Ваша корзина</h2>
+    <div id="cart-items"></div>
+    <div class="cart-total" id="cart-total">Итого: 0 $</div>
+    <button class="btn-checkout" onclick="window.location.href='/checkout/'">Оплатить</button>
+</div>
+
+<style>
+   .cart-item {
+       position: relative;
+       display: flex;
+       align-items: center;
+       padding: 10px;
+       border-bottom: 1px solid #d1d5db;
+   }
+   .cart-item img {
+       width: 50px;
+       height: 50px;
+       object-fit: contain;
+       margin-right: 10px;
+   }
+   .cart-item-info {
+       flex: 1;
+   }
+   .cart-item-info h4 {
+       font-size: 14px;
+       margin: 0;
+   }
+   .cart-item-info p {
+       font-size: 12px;
+       margin: 5px 0 0;
+   }
+   .btn-remove-item {
+       position: absolute;
+       top: 10px;
+       right: 10px;
+       background: none;
+       border: none;
+       color: #000;
+       font-size: 16px;
+       cursor: pointer;
+   }
+   .btn-remove-item:hover {
+       color: #dc3545;
+   }
+</style>
