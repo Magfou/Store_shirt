@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Q
-from .models import Product, Category, Cart, CartItem, Order, OrderItem
+from .models import Product, Category, Cart, CartItem, Order, OrderItem, UserProfile
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -24,7 +24,6 @@ def home(request):
     if category_id:
         products = products.filter(category_id=category_id)
 
-    # Исправляем логику фильтрации по наличию
     if sort_by == 'in_stock':
         products = products.filter(in_stock=True)
     elif sort_by == '-in_stock':
@@ -83,10 +82,8 @@ def add_to_cart(request):
                 cart_item.quantity += 1
                 cart_item.save()
             
-            # Подсчитываем общее количество товаров в корзине
             total_items = sum(item.quantity for item in cart.items.all())
             
-            # Формируем данные для отображения в корзине
             cart_items = []
             for item in cart.items.all():
                 cart_items.append({
@@ -145,10 +142,8 @@ def remove_from_cart(request):
             cart_item = CartItem.objects.get(id=cart_item_id, cart=cart)
             cart_item.delete()
             
-            # Подсчитываем общее количество товаров в корзине
             total_items = sum(item.quantity for item in cart.items.all())
             
-            # Формируем данные для отображения в корзине
             cart_items = []
             for item in cart.items.all():
                 cart_items.append({
@@ -189,7 +184,7 @@ def checkout(request):
                     order=order,
                     product=cart_item.product,
                     quantity=cart_item.quantity,
-                    price=cart_item.product.discount_price if cart_item.product.discount_price else cart_item.product.price
+                    price=cart_item.product.discount_price if cart_item.product.discount_price else cart_item.price
                 )
 
             cart.items.all().delete()
@@ -242,5 +237,100 @@ def logout_view(request):
     if request.method == 'POST':
         logout(request)
         messages.success(request, 'Вы успешно вышли из системы.')
+        return redirect('home')
+    return redirect('home')
+
+@login_required
+def save_delivery_payment(request):
+    if request.method == 'POST':
+        city = request.POST.get('city', '').strip()
+        street = request.POST.get('street', '').strip()
+        house = request.POST.get('house', '').strip()
+        apartment = request.POST.get('apartment', '').strip()
+        card_number = request.POST.get('card_number', '').strip()
+        card_expiry = request.POST.get('card_expiry', '').strip()
+        card_cvv = request.POST.get('card_cvv', '').strip()
+
+        # Проверка заполнения обязательных полей
+        errors = {}
+        if not city:
+            errors['city'] = 'Поле "Город" обязательно для заполнения.'
+        if not street:
+            errors['street'] = 'Поле "Улица" обязательно для заполнения.'
+        if not house:
+            errors['house'] = 'Поле "Дом" обязательно для заполнения.'
+        if not apartment:
+            errors['apartment'] = 'Поле "Квартира" обязательно для заполнения.'
+        if card_number and (not card_number.isdigit() or len(card_number) != 16):
+            errors['card_number'] = 'Номер карты должен состоять из 16 цифр.'
+        if card_expiry and not (len(card_expiry) == 5 and card_expiry[2] == '/' and card_expiry[:2].isdigit() and card_expiry[3:].isdigit()):
+            errors['card_expiry'] = 'Срок действия должен быть в формате MM/YY.'
+        if card_cvv and (not card_cvv.isdigit() or len(card_cvv) != 3):
+            errors['card_cvv'] = 'CVV должен состоять из 3 цифр.'
+
+        if errors:
+            return render(request, 'base.html', {
+                'open_delivery_payment_modal': True,
+                'errors': errors,
+                'form_data': {
+                    'city': city,
+                    'street': street,
+                    'house': house,
+                    'apartment': apartment,
+                    'card_number': card_number,
+                    'card_expiry': card_expiry,
+                    'card_cvv': card_cvv,
+                }
+            })
+
+        # Сохранение данных
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        profile.city = city
+        profile.street = street
+        profile.house = house
+        profile.apartment = apartment
+        if card_number:
+            profile.card_number = card_number
+        if card_expiry:
+            profile.card_expiry = card_expiry
+        if card_cvv:
+            profile.card_cvv = card_cvv
+        profile.save()
+
+        messages.success(request, 'Данные доставки и оплаты успешно сохранены!')
+        return redirect('home')
+
+    # При GET-запросе отображаем форму с текущими данными
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+        form_data = {
+            'city': profile.city,
+            'street': profile.street,
+            'house': profile.house,
+            'apartment': profile.apartment,
+            'card_number': profile.card_number,
+            'card_expiry': profile.card_expiry,
+            'card_cvv': profile.card_cvv,
+        }
+    except UserProfile.DoesNotExist:
+        form_data = {}
+
+    return render(request, 'base.html', {
+        'open_delivery_payment_modal': True,
+        'form_data': form_data
+    })
+
+@login_required
+def delete_card(request):
+    if request.method == 'POST':
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            profile.card_number = ''
+            profile.card_expiry = ''
+            profile.card_cvv = ''
+            profile.save()
+            messages.success(request, 'Данные карты успешно удалены!')
+        except UserProfile.DoesNotExist:
+            messages.error(request, 'Профиль не найден.')
         return redirect('home')
     return redirect('home')

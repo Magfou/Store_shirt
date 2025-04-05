@@ -111,6 +111,10 @@
         .form-group:nth-child(1) input { animation-delay: 0.1s; }
         .form-group:nth-child(2) input { animation-delay: 0.2s; }
         .form-group:nth-child(3) input { animation-delay: 0.3s; }
+        .form-group:nth-child(4) input { animation-delay: 0.4s; }
+        .form-group:nth-child(5) input { animation-delay: 0.5s; }
+        .form-group:nth-child(6) input { animation-delay: 0.6s; }
+        .form-group:nth-child(7) input { animation-delay: 0.7s; }
         @keyframes slideUp {
             to {
                 opacity: 1;
@@ -135,6 +139,22 @@
         }
         .btn-primary:hover {
             background-color: #555;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 25px;
+            color: white;
+            transition: background-color 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.5s ease forwards;
+            animation-delay: 0.5s;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
         }
         .social-buttons {
             display: flex;
@@ -335,11 +355,11 @@
             margin-bottom: 20px;
             text-align: left;
             font-weight: 500;
-            border-bottom: 2px solid #000000; /* Чёрная полоса */
+            border-bottom: 2px solid #000000;
             padding-bottom: 10px;
         }
         .cart-item {
-            position: relative; /* Для позиционирования крестика */
+            position: relative;
             display: flex;
             align-items: center;
             padding: 15px;
@@ -348,7 +368,7 @@
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             transition: transform 0.3s ease;
-            cursor: pointer; /* Курсор при наведении */
+            cursor: pointer;
         }
         .cart-item:hover {
             transform: translateY(-3px);
@@ -396,12 +416,12 @@
             background-color: #f0f4f8;
             padding: 10px;
             border-radius: 5px;
-            text-align: center; /* Центрируем "Итого" */
+            text-align: center;
         }
         .btn-checkout {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(90deg, #f39c12, #e67e22); /* Оранжево-жёлтый градиент */
+            background: linear-gradient(90deg, #f39c12, #e67e22);
             color: white;
             border: none;
             border-radius: 25px;
@@ -451,6 +471,12 @@
                 transform: translateY(-20px);
             }
         }
+        /* Стили для ошибок валидации */
+        .error-message {
+            color: #e53e3e;
+            font-size: 12px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -482,7 +508,7 @@
                         <a class="nav-link" href="#">Контакты</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Доставка и оплата</a>
+                        <a class="nav-link" href="{% url 'delivery_payment' %}" {% if user.is_authenticated %}data-bs-toggle="modal" data-bs-target="#deliveryPaymentModal"{% endif %}>Доставка и оплата</a>
                     </li>
                 </ul>
                 <!-- Корзина и авторизация -->
@@ -628,6 +654,74 @@
         </div>
     </div>
 
+    <!-- Модальное окно для доставки и оплаты -->
+    <div class="modal fade" id="deliveryPaymentModal" tabindex="-1" aria-labelledby="deliveryPaymentModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deliveryPaymentModalLabel">Доставка и оплата</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'delivery_payment' %}" id="deliveryPaymentForm">
+                        {% csrf_token %}
+                        <h6>Адрес доставки</h6>
+                        <div class="form-group">
+                            <input type="text" name="city" id="id_city" placeholder="Город" value="{{ form_data.city|default_if_none:'' }}" required>
+                            {% if errors.city %}
+                                <div class="error-message">{{ errors.city }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="street" id="id_street" placeholder="Улица" value="{{ form_data.street|default_if_none:'' }}" required>
+                            {% if errors.street %}
+                                <div class="error-message">{{ errors.street }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="house" id="id_house" placeholder="Дом" value="{{ form_data.house|default_if_none:'' }}" required>
+                            {% if errors.house %}
+                                <div class="error-message">{{ errors.house }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="apartment" id="id_apartment" placeholder="Квартира" value="{{ form_data.apartment|default_if_none:'' }}" required>
+                            {% if errors.apartment %}
+                                <div class="error-message">{{ errors.apartment }}</div>
+                            {% endif %}
+                        </div>
+                        <h6 class="mt-4">Способ оплаты</h6>
+                        <div class="form-group">
+                            <input type="text" name="card_number" id="id_card_number" placeholder="Номер карты (16 цифр)" value="{{ form_data.card_number|default_if_none:'' }}">
+                            {% if errors.card_number %}
+                                <div class="error-message">{{ errors.card_number }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="card_expiry" id="id_card_expiry" placeholder="Срок действия (MM/YY)" value="{{ form_data.card_expiry|default_if_none:'' }}">
+                            {% if errors.card_expiry %}
+                                <div class="error-message">{{ errors.card_expiry }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="card_cvv" id="id_card_cvv" placeholder="CVV (3 цифры)" value="{{ form_data.card_cvv|default_if_none:'' }}">
+                            {% if errors.card_cvv %}
+                                <div class="error-message">{{ errors.card_cvv }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Сохранить данные</button>
+                            <form method="post" action="{% url 'delete_card' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Удалить карту</button>
+                            </form>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Контейнер для пагинации (только для авторизованных пользователей) -->
     {% if user.is_authenticated %}
         {% block pagination %}
@@ -659,6 +753,12 @@
                 registerModal.show();
             });
         {% endif %}
+        {% if open_delivery_payment_modal %}
+            document.addEventListener('DOMContentLoaded', function() {
+                const deliveryPaymentModal = new bootstrap.Modal(document.getElementById('deliveryPaymentModal'));
+                deliveryPaymentModal.show();
+            });
+        {% endif %}
         // Открытие модального окна после выхода
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('logged_out')) {
@@ -673,6 +773,80 @@
                     alert.style.animation = 'fadeOut 0.5s ease-in-out forwards';
                 }, 3000);
             });
+        });
+        // Клиентская валидация формы доставки и оплаты
+        document.getElementById('deliveryPaymentForm')?.addEventListener('submit', function(event) {
+            let isValid = true;
+            const errors = {};
+
+            const city = document.getElementById('id_city').value.trim();
+            const street = document.getElementById('id_street').value.trim();
+            const house = document.getElementById('id_house').value.trim();
+            const apartment = document.getElementById('id_apartment').value.trim();
+            const cardNumber = document.getElementById('id_card_number').value.trim();
+            const cardExpiry = document.getElementById('id_card_expiry').value.trim();
+            const cardCvv = document.getElementById('id_card_cvv').value.trim();
+
+            // Очистка предыдущих ошибок
+            document.querySelectorAll('.error-message').forEach(el => el.remove());
+
+            // Проверка адреса доставки
+            if (!city) {
+                errors['city'] = 'Поле "Город" обязательно для заполнения.';
+                isValid = false;
+            }
+            if (!street) {
+                errors['street'] = 'Поле "Улица" обязательно для заполнения.';
+                isValid = false;
+            }
+            if (!house) {
+                errors['house'] = 'Поле "Дом" обязательно для заполнения.';
+                isValid = false;
+            }
+            if (!apartment) {
+                errors['apartment'] = 'Поле "Квартира" обязательно для заполнения.';
+                isValid = false;
+            }
+
+            // Проверка данных карты (если заполнены)
+            if (cardNumber) {
+                if (!/^\d{16}$/.test(cardNumber)) {
+                    errors['card_number'] = 'Номер карты должен состоять из 16 цифр.';
+                    isValid = false;
+                }
+            }
+            if (cardExpiry) {
+                if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiry)) {
+                    errors['card_expiry'] = 'Срок действия должен быть в формате MM/YY.';
+                    isValid = false;
+                } else {
+                    const [month, year] = cardExpiry.split('/');
+                    const currentYear = new Date().getFullYear() % 100;
+                    const currentMonth = new Date().getMonth() + 1;
+                    if (parseInt(year) < currentYear || (parseInt(year) === currentYear && parseInt(month) < currentMonth)) {
+                        errors['card_expiry'] = 'Срок действия карты истёк.';
+                        isValid = false;
+                    }
+                }
+            }
+            if (cardCvv) {
+                if (!/^\d{3}$/.test(cardCvv)) {
+                    errors['card_cvv'] = 'CVV должен состоять из 3 цифр.';
+                    isValid = false;
+                }
+            }
+
+            // Если есть ошибки, отображаем их
+            if (!isValid) {
+                event.preventDefault();
+                for (const [field, message] of Object.entries(errors)) {
+                    const input = document.getElementById(`id_${field}`);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = message;
+                    input.parentElement.appendChild(errorDiv);
+                }
+            }
         });
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92b8010f0eb4677e',t:'MTc0Mzg0NTE4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
