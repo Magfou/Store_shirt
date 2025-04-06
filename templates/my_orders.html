@@ -1,0 +1,85 @@
+<!-- templates/my_orders.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h2>Мои заказы</h2>
+    {% if orders %}
+        <div class="orders-list">
+            {% for order in orders %}
+                <div class="order-card">
+                    <h3>Заказ #{{ order.id }}</h3>
+                    <p>Дата: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+                    <p>Сумма: {{ order.total_price }} $</p>
+                    <p>Статус: 
+                        {% if order.status == 'PENDING' %}
+                            Обрабатывается
+                        {% elif order.status == 'SHIPPED' %}
+                            Отправлен
+                        {% elif order.status == 'DELIVERED' %}
+                            Доставлен
+                        {% else %}
+                            Отменён
+                        {% endif %}
+                    </p>
+                    <h4>Товары:</h4>
+                    <ul>
+                        {% for item in order.items.all %}
+                            <li>{{ item.product.name }} ({{ item.quantity }} шт.) - {{ item.price }} $</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>У вас пока нет заказов.</p>
+    {% endif %}
+</div>
+
+<style>
+    .container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+    }
+    h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+    }
+    .orders-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .order-card {
+        background-color: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    .order-card:hover {
+        transform: translateY(-5px);
+    }
+    .order-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+        color: #333;
+    }
+    .order-card p {
+        margin: 5px 0;
+        color: #6b7280;
+    }
+    .order-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 10px 0 0 0;
+    }
+    .order-card li {
+        padding: 5px 0;
+        color: #333;
+    }
+</style>
+{% endblock %}

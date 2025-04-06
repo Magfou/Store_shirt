@@ -683,7 +683,7 @@
             const imageSrc = button.closest('.product-card').querySelector('img').dataset.image;
             animateFlyToCart(button, imageSrc);
 
-            fetch('/add-to-cart/', {
+            fetch('/add_to_cart/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

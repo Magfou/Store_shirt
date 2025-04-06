@@ -126,3 +126,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Настройки для выхода
 LOGOUT_REDIRECT_URL = '/?logged_out=true'
+
+# settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'vanyarudi16@gmail.com'  # Замените на ваш email
+EMAIL_HOST_PASSWORD = 'vanya210123abc_'  # Замените на пароль приложения
+DEFAULT_FROM_EMAIL = 'your_email@gmail.com'

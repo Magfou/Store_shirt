@@ -1,0 +1,90 @@
+<!-- templates/checkout.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h2>Оформление заказа</h2>
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <form method="post" action="{% url 'checkout' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="payment_method">Способ оплаты</label>
+            <select name="payment_method" id="payment_method" required>
+                <option value="">Выберите способ оплаты</option>
+                <option value="CARD">Кредитная карта</option>
+                <option value="PAYPAL">PayPal</option>
+                <option value="CASH_ON_DELIVERY">Наложенный платеж</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Оформить заказ</button>
+    </form>
+</div>
+
+<style>
+    .container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #333;
+    }
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    .btn-primary {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(90deg, #ff6f61, #de3d6d);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-3px);
+    }
+    .alert {
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+{% endblock %}
