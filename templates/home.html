@@ -102,7 +102,7 @@
                     {% endfor %}
                 </div>
 
-                <!-- Пагинация (переносим сюда, после товаров) -->
+                <!-- Пагинация -->
                 {% if user.is_authenticated and products_page.has_other_pages %}
                     <div class="pagination-container">
                         <div class="pagination">
@@ -286,13 +286,13 @@
         /* Стили для карточек товаров */
         .product-grid {
             display: flex;
-            flex-wrap: wrap; /* Сетка с переносом на следующий ряд */
+            flex-wrap: wrap;
             gap: 20px;
             transition: opacity 0.3s ease;
         }
         .product-card {
             position: relative;
-            width: calc(20% - 16px); /* 5 карточек в ряд (20% ширины минус отступы) */
+            width: calc(20% - 16px);
             background-color: white;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -375,7 +375,6 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             animation: pulse 1.5s infinite ease-in-out;
         }
-        /* Анимация пульсации для скидки */
         @keyframes pulse {
             0% {
                 transform: scale(1);
@@ -390,7 +389,6 @@
                 box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7);
             }
         }
-        /* Стили для кнопки "В корзину" */
         .btn-add-to-cart {
             background-color: #333;
             border: none;
@@ -418,7 +416,6 @@
             transform: none;
             animation: none;
         }
-        /* Анимация поднятия при нажатии */
         @keyframes liftEffect {
             0% {
                 transform: translateY(0);
@@ -430,7 +427,6 @@
                 transform: translateY(0);
             }
         }
-        /* Анимация появления кнопки */
         @keyframes slideIn {
             to {
                 opacity: 1;
@@ -443,7 +439,6 @@
                 transform: translateY(0);
             }
         }
-        /* Стили для пагинации */
         .pagination-container {
             margin: 30px 0;
             display: flex;
@@ -484,13 +479,11 @@
             color: white;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        /* Задержка анимации для каждой кнопки пагинации */
         .pagination a:nth-child(1), .pagination span:nth-child(1) { animation-delay: 0.1s; }
         .pagination a:nth-child(2), .pagination span:nth-child(2) { animation-delay: 0.2s; }
         .pagination a:nth-child(3), .pagination span:nth-child(3) { animation-delay: 0.3s; }
         .pagination a:nth-child(4), .pagination span:nth-child(4) { animation-delay: 0.4s; }
         .pagination a:nth-child(5), .pagination span:nth-child(5) { animation-delay: 0.5s; }
-        /* Стили для "Товары не найдены" */
         .empty-products {
             text-align: center;
             padding: 40px 20px;
@@ -507,7 +500,6 @@
             color: #6b7280;
             margin: 0;
         }
-        /* Эффект пружины */
         @keyframes spring {
             0% {
                 transform: scale(1);
@@ -525,7 +517,6 @@
                 transform: scale(1);
             }
         }
-        /* Эффект покачивания */
         @keyframes sway {
             0% {
                 transform: rotate(0deg);
@@ -540,7 +531,6 @@
                 transform: rotate(0deg);
             }
         }
-        /* Эффект свечения */
         @keyframes glow {
             0% {
                 box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
@@ -608,12 +598,10 @@
                             `;
                             productGrid.appendChild(card);
                         });
-                        // Перепривязываем обработчики событий для новых кнопок
                         bindAddToCartButtons();
                     }
                     productGrid.style.opacity = '1';
 
-                    // Обновляем пагинацию
                     const paginationContainer = document.querySelector('.pagination-container');
                     if (paginationContainer) {
                         paginationContainer.innerHTML = data.pagination_html;
@@ -652,7 +640,7 @@
             window.location.href = '/';
         }
 
-        // Функция для анимации "полета" товара в корзину с закручиванием
+        // Функция для анимации "полета" товара в корзину
         function animateFlyToCart(button, imageSrc) {
             const cartIcon = document.getElementById('cart-toggle');
             const buttonRect = button.getBoundingClientRect();
@@ -709,7 +697,7 @@
 
         // Функция для удаления товара из корзины
         function removeFromCart(cartItemId) {
-            fetch('/remove-from-cart/', {
+            fetch('/remove_from_cart/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -744,17 +732,21 @@
         // Функция для обновления отображения корзины
         function updateCartDisplay(cartItems, cartTotal) {
             const cartItemsContainer = document.getElementById('cart-items');
+            const cartCountElement = document.getElementById('cart-count');
+            const cartTotalElement = document.getElementById('cart-total');
+
             cartItemsContainer.innerHTML = '';
-            if (cartItems.length === 0) {
+            if (!cartItems || cartItems.length === 0) {
                 cartItemsContainer.innerHTML = `
                     <div class="empty-cart">
                         <img src="{% static '/images/empty-cart.png' %}" alt="Empty Cart">
                         <p>Ваша корзина пуста.</p>
                     </div>
                 `;
+                cartCountElement.textContent = '0';
+                cartTotalElement.textContent = `Итого: 0 $`;
             } else {
                 cartItems.forEach(item => {
-                    console.log('Cart item:', item); // Отладочный вывод
                     if (!item.id) {
                         console.error('Ошибка: у товара в корзине отсутствует id:', item);
                         return;
@@ -772,7 +764,6 @@
                     cartItemsContainer.appendChild(itemElement);
                 });
 
-                // Привязываем обработчики для кнопок удаления
                 document.querySelectorAll('.btn-remove-item').forEach(button => {
                     button.addEventListener('click', function() {
                         const cartItemId = this.dataset.cartItemId;
@@ -783,8 +774,10 @@
                         removeFromCart(cartItemId);
                     });
                 });
+
+                cartCountElement.textContent = cartItems.reduce((total, item) => total + item.quantity, 0);
+                cartTotalElement.textContent = `Итого: ${cartTotal} $`;
             }
-            document.getElementById('cart-total').textContent = `Итого: ${cartTotal} $`;
         }
 
         // Функция для открытия корзины
@@ -861,16 +854,19 @@
                     }
                 });
 
-                // Инициализация корзины
-                fetch('/get-cart/', {
+                // Инициализация корзины при загрузке страницы
+                fetch('/get_cart/', {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('cart-count').textContent = data.total_items;
                     updateCartDisplay(data.cart_items, data.cart_total);
+                })
+                .catch(error => {
+                    console.error('Ошибка при получении корзины:', error);
+                    updateCartDisplay([], 0); // Если ошибка, отображаем пустую корзину
                 });
 
                 // Обработчики для корзины

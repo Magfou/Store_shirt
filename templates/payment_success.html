@@ -1,0 +1,134 @@
+<!-- templates/payment_success.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h2>Заказ успешно оформлен!</h2>
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="order-details">
+        <h3>Заказ #{{ order.id }}</h3>
+        <p><strong>Дата:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+        <p><strong>Сумма:</strong> {{ order.total_price }} $</p>
+        <p><strong>Статус:</strong> 
+            {% if order.status == 'PENDING' %}
+                Обрабатывается
+            {% elif order.status == 'SHIPPED' %}
+                Отправлен
+            {% elif order.status == 'DELIVERED' %}
+                Доставлен
+            {% else %}
+                Отменён
+            {% endif %}
+        </p>
+        <p><strong>Способ оплаты:</strong> 
+            {% with payment=order.payments.first %}
+                {% if payment.method == 'CARD' %}
+                    Кредитная карта
+                {% elif payment.method == 'PAYPAL' %}
+                    PayPal
+                {% else %}
+                    Наложенный платеж
+                {% endif %}
+            {% endwith %}
+        </p>
+        <h4>Товары:</h4>
+        <ul>
+            {% for item in order.items.all %}
+                <li>{{ item.product.name }} ({{ item.quantity }} шт.) - {{ item.price }} $</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{% url 'my_orders' %}" class="btn btn-primary">Мои заказы</a>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Вернуться в каталог</a>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    h2, h3 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    .order-details {
+        margin-bottom: 30px;
+    }
+    .order-details p {
+        margin: 5px 0;
+        color: #333;
+    }
+    .order-details ul {
+        list-style: none;
+        padding: 0;
+        margin: 10px 0 0 0;
+    }
+    .order-details li {
+        padding: 5px 0;
+        color: #333;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+    .btn-primary {
+        padding: 12px 20px;
+        background: linear-gradient(90deg, #ff6f61, #de3d6d);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        text-decoration: none;
+        transition: transform 0.3s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-3px);
+    }
+    .btn-secondary {
+        padding: 12px 20px;
+        background: #6b7280;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        text-decoration: none;
+        transition: transform 0.3s ease;
+    }
+    .btn-secondary:hover {
+        transform: translateY(-3px);
+        background: #5a6268;
+    }
+    .alert {
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+{% endblock %}

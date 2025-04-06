@@ -46,7 +46,9 @@ def home(request):
 
     products_with_discount = []
     for product in products:
-        discount_percent = product.discount_percent
+        discount_percent = None
+        if product.discount_price and product.price > product.discount_price:
+            discount_percent = round(((product.price - product.discount_price) / product.price) * 100)
         products_with_discount.append({
             'product': product,
             'discount_percent': discount_percent
@@ -62,12 +64,15 @@ def home(request):
         products_data = []
         for item in products_page:
             product = item['product']
+            discount_percent = None
+            if product.discount_price and product.price > product.discount_price:
+                discount_percent = round(((product.price - product.discount_price) / product.price) * 100)
             products_data.append({
                 'id': product.id,
                 'name': product.name,
                 'price': float(product.price),
                 'discount_price': float(product.discount_price) if product.discount_price else None,
-                'discount_percent': item['discount_percent'],
+                'discount_percent': discount_percent,
                 'image': product.image.url if product.image else 'https://via.placeholder.com/200',
                 'in_stock': product.in_stock,
             })
@@ -103,7 +108,6 @@ def home(request):
     }
     return render(request, 'home.html', context)
 
-@login_required
 @login_required
 def add_to_cart(request):
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -142,29 +146,22 @@ def add_to_cart(request):
 @login_required
 def get_cart(request):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        try:
-            cart = Cart.objects.get(user=request.user)
-            cart_items = []
-            for item in cart.items.all():
-                cart_items.append({
-                    'id': item.id,
-                    'product_name': item.product.name,
-                    'quantity': item.quantity,
-                    'price': float(item.product.discount_price if item.product.discount_price else item.product.price),
-                    'total_price': float(item.total_price),
-                    'image': item.product.image.url if item.product.image else 'https://via.placeholder.com/50',
-                })
-            return JsonResponse({
-                'cart_items': cart_items,
-                'cart_total': float(cart.total_price),
-                'total_items': sum(item.quantity for item in cart.items.all()),
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart_items = []
+        for item in cart.items.all():
+            cart_items.append({
+                'id': item.id,
+                'product_name': item.product.name,
+                'quantity': item.quantity,
+                'price': float(item.product.discount_price if item.product.discount_price else item.product.price),
+                'total_price': float(item.total_price),
+                'image': item.product.image.url if item.product.image else 'https://via.placeholder.com/50',
             })
-        except Cart.DoesNotExist:
-            return JsonResponse({
-                'cart_items': [],
-                'cart_total': 0.0,
-                'total_items': 0,
-            })
+        return JsonResponse({
+            'cart_items': cart_items,
+            'cart_total': float(cart.total_price),
+            'total_items': sum(item.quantity for item in cart.items.all()),
+        })
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required
@@ -227,7 +224,6 @@ def checkout(request):
                     price=cart_item.product.discount_price if cart_item.product.discount_price else cart_item.product.price
                 )
 
-            # Создаём запись о платеже
             Payment.objects.create(
                 order=order,
                 amount=order.total_price,
@@ -235,11 +231,10 @@ def checkout(request):
                 status='PENDING' if payment_method != 'CASH_ON_DELIVERY' else 'COMPLETED'
             )
 
-            # Если выбран онлайн-платёж, перенаправляем на страницу оплаты
             if payment_method in ['CARD', 'PAYPAL']:
                 return redirect('process_payment', order_id=order.id)
 
-            cart.items.all().delete()
+            cart.delete()
             messages.success(request, f'Заказ #{order.id} успешно оформлен! Сумма: {order.total_price} $')
             return redirect('home')
         except Cart.DoesNotExist:
@@ -258,7 +253,6 @@ def process_payment(request, order_id):
         return redirect('home')
 
     try:
-        # Создаём сессию оплаты в Stripe
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[{
@@ -267,7 +261,7 @@ def process_payment(request, order_id):
                     'product_data': {
                         'name': f'Заказ #{order.id}',
                     },
-                    'unit_amount': int(order.total_price * 100),  # Сумма в центах
+                    'unit_amount': int(order.total_price * 100),
                 },
                 'quantity': 1,
             }],
@@ -287,10 +281,10 @@ def payment_success(request):
     payment = order.payments.first()
     payment.status = 'COMPLETED'
     payment.save()
-    order.status = 'PENDING'  # Заказ переходит в статус "Обрабатывается"
+    order.status = 'PENDING'
     order.save()
     cart = Cart.objects.get(user=request.user)
-    cart.items.all().delete()
+    cart.delete()
     messages.success(request, f'Оплата заказа #{order.id} успешно завершена!')
     return redirect('home')
 
@@ -323,7 +317,7 @@ def login_view(request):
 def register_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
-        email = request.POST.get('email')  # Добавляем email
+        email = request.POST.get('email')
         name = request.POST.get('name')
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')

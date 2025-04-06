@@ -1,13 +1,13 @@
+<!-- templates/base.html -->
 <!DOCTYPE html>
 {% load static %}
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <title>Интернет-магазин</title>
-    <!-- Подключаем Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Подключаем Google Fonts для стиля -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -27,7 +27,6 @@
             margin-bottom: 20px;
             color: #333;
         }
-        /* Стили для шапки */
         .navbar {
             padding: 15px 0;
             background-color: #fff;
@@ -82,7 +81,6 @@
             padding: 2px 6px;
             border-radius: 50%;
         }
-        /* Стили для форм */
         .form-group {
             margin-bottom: 20px;
         }
@@ -189,7 +187,6 @@
         a:hover {
             text-decoration: underline;
         }
-        /* Анимация для модальных окон */
         .modal.fade .modal-dialog {
             transform: scale(0.7);
             opacity: 0;
@@ -239,7 +236,6 @@
         .logout-form button:hover {
             text-decoration: underline;
         }
-        /* Стили для сообщений */
         .messages {
             position: fixed;
             top: 70px;
@@ -284,7 +280,6 @@
                 transform: translateY(-10px);
             }
         }
-        /* Стили для корзины */
         .cart-overlay {
             position: fixed;
             top: 0;
@@ -370,7 +365,7 @@
             right: 10px;
             width: 20px;
             height: 20px;
-            background: none; /* Убираем фон */
+            background: none;
             border: none;
             cursor: pointer;
             z-index: 10;
@@ -383,18 +378,18 @@
             left: 50%;
             width: 16px;
             height: 2px;
-            background-color: #000; /* Чёрный цвет полосок */
+            background-color: #000;
             transform-origin: center;
         }
         .btn-remove-item::before {
-            transform: translate(-50%, -50%) rotate(45deg); /* Первая полоска (↗) */
+            transform: translate(-50%, -50%) rotate(45deg);
         }
         .btn-remove-item::after {
-            transform: translate(-50%, -50%) rotate(-45deg); /* Вторая полоска (↘) */
+            transform: translate(-50%, -50%) rotate(-45deg);
         }
         .btn-remove-item:hover::before,
         .btn-remove-item:hover::after {
-            background-color: #555; /* Цвет при наведении */
+            background-color: #555;
         }
         .cart-total {
             margin-top: 20px;
@@ -423,7 +418,6 @@
             transform: translateY(-3px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
-        /* Стили для анимации "полета" товара */
         .flying-item {
             position: fixed;
             width: 50px;
@@ -435,7 +429,6 @@
             opacity: 0.8;
             transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        /* Стили для пустой корзины */
         .empty-cart {
             text-align: center;
             padding: 40px 20px;
@@ -451,7 +444,6 @@
             color: #6b7280;
             margin: 0;
         }
-        /* Эффект пружины */
         @keyframes spring {
             0% {
                 transform: scale(1);
@@ -469,7 +461,6 @@
                 transform: scale(1);
             }
         }
-        /* Эффект покачивания */
         @keyframes sway {
             0% {
                 transform: rotate(0deg);
@@ -484,7 +475,6 @@
                 transform: rotate(0deg);
             }
         }
-        /* Эффект свечения */
         @keyframes glow {
             0% {
                 box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
@@ -496,7 +486,6 @@
                 box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
             }
         }
-        /* Стили для ошибок валидации */
         .error-message {
             color: #e53e3e;
             font-size: 12px;
@@ -505,20 +494,15 @@
     </style>
 </head>
 <body>
-    <!-- Навигационная панель -->
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
-            <!-- Логотип -->
             <a class="navbar-brand" href="{% url 'home' %}">
                 <img src="{% static '/images/Logo.png' %}" alt="AtakShop">
             </a>
-            <!-- Кнопка для мобильного меню -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Close">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <!-- Меню и корзина -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Главное меню -->
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Каталог</a>
@@ -536,9 +520,7 @@
                         <a class="nav-link" href="#">Доставка и оплата</a>
                     </li>
                 </ul>
-                <!-- Корзина и авторизация -->
                 <div class="navbar-nav ms-auto d-flex align-items-center">
-                    <!-- Корзина (видна только авторизованным) -->
                     {% if user.is_authenticated %}
                         <a href="#" class="cart-icon" id="cart-toggle">
                             <img src="{% static '/images/drawer.png' %}" alt="Корзина">
@@ -559,7 +541,6 @@
         </div>
     </nav>
 
-    <!-- Корзина -->
     <div class="cart-overlay" id="cart-overlay"></div>
     <div class="cart-sidebar" id="cart-sidebar">
         <h2>Ваша корзина</h2>
@@ -568,7 +549,6 @@
         <button class="btn-checkout" onclick="window.location.href='/checkout/'">Оплатить</button>
     </div>
 
-    <!-- Сообщения -->
     {% if messages %}
         <div class="messages">
             {% for message in messages %}
@@ -579,44 +559,27 @@
         </div>
     {% endif %}
 
-    <!-- Модальное окно для входа -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="loginModalLabel">Log In</h5>
+                    <h5 class="modal-title" id="loginModalLabel">Вход</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form method="post" action="{% url 'login' %}" id="loginForm">
                         {% csrf_token %}
                         <div class="form-group">
-                            <input type="text" name="username" id="id_username" placeholder="Your Username" value="{{ login_form.username.value|default_if_none:'' }}" required>
-                            {% if login_form.username.errors %}
-                                <div class="text-red-600 text-sm mt-1">{{ login_form.username.errors }}</div>
-                            {% endif %}
+                            <input type="text" name="username" id="id_username" placeholder="Имя пользователя" required>
                         </div>
                         <div class="form-group">
-                            <input type="password" name="password" id="id_password" placeholder="Password" required>
-                            {% if login_form.password.errors %}
-                                <div class="text-red-600 text-sm mt-1">{{ login_form.password.errors }}</div>
-                            {% endif %}
-                            {% if login_form.non_field_errors %}
-                                <div class="text-red-600 text-sm mt-1">{{ login_form.non_field_errors }}</div>
-                            {% endif %}
+                            <input type="password" name="password" id="id_password" placeholder="Пароль" required>
                         </div>
-                        <div class="flex justify-end mb-4">
-                            <a href="#" class="text-sm text-gray-600 hover:underline">Forgot?</a>
-                        </div>
-                        <input type="hidden" name="next" value="{{ request.path }}">
-                        <button type="submit" class="btn btn-primary">Log In</button>
+                        <button type="submit" class="btn btn-primary w-100">Войти</button>
                     </form>
-                    <div class="text-center my-4">
-                        <p class="text-sm text-gray-600">Or sign up with social account</p>
-                    </div>
                     <div class="social-buttons">
+                        <button><i class="fab fa-google"></i> Google</button>
                         <button><i class="fab fa-facebook-f"></i> Facebook</button>
-                        <button><i class="fab fa-twitter"></i> Twitter</button>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -626,104 +589,70 @@
         </div>
     </div>
 
-    <!-- Модальное окно для регистрации -->
     <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="registerModalLabel">Sign Up</h5>
+                    <h5 class="modal-title" id="registerModalLabel">Регистрация</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form method="post" action="{% url 'register' %}" id="registerForm">
                         {% csrf_token %}
                         <div class="form-group">
-                            <input type="text" name="username" id="id_reg_username" placeholder="Your Username" value="{{ register_form.username.value|default_if_none:'' }}" required>
-                            {% if register_form.username.errors %}
-                                <div class="text-red-600 text-sm mt-1">{{ register_form.username.errors }}</div>
-                            {% endif %}
+                            <input type="text" name="username" id="id_reg_username" placeholder="Имя пользователя" required>
                         </div>
                         <div class="form-group">
-                            <input type="email" name="email" id="id_reg_email" placeholder="Your Email" value="{{ register_form.email.value|default_if_none:'' }}" required>
-                            {% if register_form.email.errors %}
-                                <div class="text-red-600 text-sm mt-1">{{ register_form.email.errors }}</div>
-                            {% endif %}
+                            <input type="email" name="email" id="id_email" placeholder="Email" required>
                         </div>
                         <div class="form-group">
-                            <input type="text" name="name" id="id_name" placeholder="Name" value="{{ register_form.name.value|default_if_none:'' }}">
+                            <input type="text" name="name" id="id_name" placeholder="Ваше имя">
                         </div>
                         <div class="form-group">
-                            <input type="password" name="password1" id="id_password1" placeholder="Password" required>
-                            {% if register_form.password1.errors %}
-                                <div class="text-red-600 text-sm mt-1">{{ register_form.password1.errors }}</div>
-                            {% endif %}
+                            <input type="password" name="password1" id="id_password1" placeholder="Пароль" required>
                         </div>
                         <div class="form-group">
-                            <input type="password" name="password2" id="id_password2" placeholder="Confirm Password" required>
-                            {% if register_form.password2.errors %}
-                                <div class="text-red-600 text-sm mt-1">{{ register_form.password2.errors }}</div>
-                            {% endif %}
-                            {% if register_form.non_field_errors %}
-                                <div class="text-red-600 text-sm mt-1">{{ register_form.non_field_errors }}</div>
-                            {% endif %}
+                            <input type="password" name="password2" id="id_password2" placeholder="Подтвердите пароль" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">Sign Up</button>
+                        <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
                     </form>
-                    <div class="text-center my-4">
-                        <p class="text-sm text-gray-600">Or sign up with social account</p>
-                    </div>
                     <div class="social-buttons">
+                        <button><i class="fab fa-google"></i> Google</button>
                         <button><i class="fab fa-facebook-f"></i> Facebook</button>
-                        <button><i class="fab fa-twitter"></i> Twitter</button>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <p>By signing up you agree to our <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a></p>
                     <p>Уже есть аккаунт? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Войдите</a></p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Основной контент -->
     <div class="container">
         {% block content %}
         {% endblock %}
     </div>
 
-    <!-- Подключаем Font Awesome для иконок -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <!-- Подключаем Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- JavaScript для управления модальными окнами и анимацией сообщений -->
     <script>
-        // Открытие модального окна при загрузке страницы
-        {% if open_login_modal %}
-            document.addEventListener('DOMContentLoaded', function() {
-                const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-                loginModal.show();
-            });
-        {% endif %}
-        {% if open_register_modal %}
-            document.addEventListener('DOMContentLoaded', function() {
-                const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
-                registerModal.show();
-            });
-        {% endif %}
-        // Открытие модального окна после выхода
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('logged_out')) {
-            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-            loginModal.show();
-        }
-        // Анимация исчезновения сообщений
         document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
+            const messages = document.querySelectorAll('.alert');
+            messages.forEach((message, index) => {
                 setTimeout(() => {
-                    alert.style.animation = 'fadeOut 0.5s ease-in-out forwards';
-                }, 3000);
+                    message.style.animation = 'fadeOut 0.5s ease-in-out forwards';
+                    setTimeout(() => message.remove(), 500);
+                }, 3000 + index * 500);
             });
+
+            {% if open_login_modal %}
+                var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                loginModal.show();
+            {% endif %}
+
+            {% if open_register_modal %}
+                var registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+                registerModal.show();
+            {% endif %}
         });
     </script>
 </body>
