@@ -1,4 +1,3 @@
-<!-- templates/base.html -->
 <!DOCTYPE html>
 {% load static %}
 <html lang="ru">
@@ -230,7 +229,7 @@
             display: inline;
         }
         .logout-form button {
-            background: None;
+            background: none;
             border: none;
             padding: 0;
             font: inherit;
@@ -284,35 +283,6 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
-        }
-        /* Стили для пагинации */
-        .pagination-container {
-            max-width: 1400px;
-            margin: 20px auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .pagination {
-            display: flex;
-            gap: 5px;
-        }
-        .pagination a, .pagination span {
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            font-size: 14px;
-            color: #333;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        .pagination a:hover {
-            background-color: #e5e7eb;
-        }
-        .pagination .current {
-            background-color: #1a73e8;
-            color: white;
-            border-color: #1a73e8;
         }
         /* Стили для корзины */
         .cart-overlay {
@@ -398,15 +368,33 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: none;
+            width: 20px;
+            height: 20px;
+            background: none; /* Убираем фон */
             border: none;
-            font-size: 18px;
-            color: #e53e3e;
             cursor: pointer;
-            transition: color 0.3s ease;
+            z-index: 10;
         }
-        .btn-remove-item:hover {
-            color: #c53030;
+        .btn-remove-item::before,
+        .btn-remove-item::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 2px;
+            background-color: #000; /* Чёрный цвет полосок */
+            transform-origin: center;
+        }
+        .btn-remove-item::before {
+            transform: translate(-50%, -50%) rotate(45deg); /* Первая полоска (↗) */
+        }
+        .btn-remove-item::after {
+            transform: translate(-50%, -50%) rotate(-45deg); /* Вторая полоска (↘) */
+        }
+        .btn-remove-item:hover::before,
+        .btn-remove-item:hover::after {
+            background-color: #555; /* Цвет при наведении */
         }
         .cart-total {
             margin-top: 20px;
@@ -421,19 +409,19 @@
         .btn-checkout {
             width: 100%;
             padding: 12px;
-            background: linear-gradient(90deg, #f39c12, #e67e22);
+            background: #333;
             color: white;
             border: none;
             border-radius: 25px;
             font-size: 16px;
             margin-top: 20px;
             cursor: pointer;
-            transition: background 0.3s ease, transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
         .btn-checkout:hover {
-            background: linear-gradient(90deg, #e67e22, #d35400);
-            transform: scale(1.02);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
         /* Стили для анимации "полета" товара */
         .flying-item {
@@ -445,7 +433,7 @@
             z-index: 1002;
             pointer-events: none;
             opacity: 0.8;
-            transition: all 0.6s ease;
+            transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         /* Стили для пустой корзины */
         .empty-cart {
@@ -456,19 +444,56 @@
             width: 150px;
             height: 150px;
             margin-bottom: 20px;
-            animation: bounce 2s infinite ease-in-out;
+            animation: spring 1.5s infinite ease-in-out, sway 2s infinite ease-in-out, glow 2s infinite ease-in-out;
         }
         .empty-cart p {
             font-size: 18px;
             color: #6b7280;
             margin: 0;
         }
-        @keyframes bounce {
-            0%, 100% {
-                transform: translateY(0);
+        /* Эффект пружины */
+        @keyframes spring {
+            0% {
+                transform: scale(1);
+            }
+            30% {
+                transform: scale(1.3, 0.7);
             }
             50% {
-                transform: translateY(-20px);
+                transform: scale(0.7, 1.3);
+            }
+            70% {
+                transform: scale(1.1, 0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        /* Эффект покачивания */
+        @keyframes sway {
+            0% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(5deg);
+            }
+            75% {
+                transform: rotate(-5deg);
+            }
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+        /* Эффект свечения */
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(26, 115, 232, 0.5);
+            }
+            100% {
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
             }
         }
         /* Стили для ошибок валидации */
@@ -508,7 +533,7 @@
                         <a class="nav-link" href="#">Контакты</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'delivery_payment' %}" {% if user.is_authenticated %}data-bs-toggle="modal" data-bs-target="#deliveryPaymentModal"{% endif %}>Доставка и оплата</a>
+                        <a class="nav-link" href="#">Доставка и оплата</a>
                     </li>
                 </ul>
                 <!-- Корзина и авторизация -->
@@ -654,80 +679,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно для доставки и оплаты -->
-    <div class="modal fade" id="deliveryPaymentModal" tabindex="-1" aria-labelledby="deliveryPaymentModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deliveryPaymentModalLabel">Доставка и оплата</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form method="post" action="{% url 'delivery_payment' %}" id="deliveryPaymentForm">
-                        {% csrf_token %}
-                        <h6>Адрес доставки</h6>
-                        <div class="form-group">
-                            <input type="text" name="city" id="id_city" placeholder="Город" value="{{ form_data.city|default_if_none:'' }}" required>
-                            {% if errors.city %}
-                                <div class="error-message">{{ errors.city }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="street" id="id_street" placeholder="Улица" value="{{ form_data.street|default_if_none:'' }}" required>
-                            {% if errors.street %}
-                                <div class="error-message">{{ errors.street }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="house" id="id_house" placeholder="Дом" value="{{ form_data.house|default_if_none:'' }}" required>
-                            {% if errors.house %}
-                                <div class="error-message">{{ errors.house }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="apartment" id="id_apartment" placeholder="Квартира" value="{{ form_data.apartment|default_if_none:'' }}" required>
-                            {% if errors.apartment %}
-                                <div class="error-message">{{ errors.apartment }}</div>
-                            {% endif %}
-                        </div>
-                        <h6 class="mt-4">Способ оплаты</h6>
-                        <div class="form-group">
-                            <input type="text" name="card_number" id="id_card_number" placeholder="Номер карты (16 цифр)" value="{{ form_data.card_number|default_if_none:'' }}">
-                            {% if errors.card_number %}
-                                <div class="error-message">{{ errors.card_number }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="card_expiry" id="id_card_expiry" placeholder="Срок действия (MM/YY)" value="{{ form_data.card_expiry|default_if_none:'' }}">
-                            {% if errors.card_expiry %}
-                                <div class="error-message">{{ errors.card_expiry }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="card_cvv" id="id_card_cvv" placeholder="CVV (3 цифры)" value="{{ form_data.card_cvv|default_if_none:'' }}">
-                            {% if errors.card_cvv %}
-                                <div class="error-message">{{ errors.card_cvv }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">Сохранить данные</button>
-                            <form method="post" action="{% url 'delete_card' %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger">Удалить карту</button>
-                            </form>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Контейнер для пагинации (только для авторизованных пользователей) -->
-    {% if user.is_authenticated %}
-        {% block pagination %}
-        {% endblock %}
-    {% endif %}
-
     <!-- Основной контент -->
     <div class="container">
         {% block content %}
@@ -753,12 +704,6 @@
                 registerModal.show();
             });
         {% endif %}
-        {% if open_delivery_payment_modal %}
-            document.addEventListener('DOMContentLoaded', function() {
-                const deliveryPaymentModal = new bootstrap.Modal(document.getElementById('deliveryPaymentModal'));
-                deliveryPaymentModal.show();
-            });
-        {% endif %}
         // Открытие модального окна после выхода
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('logged_out')) {
@@ -774,80 +719,6 @@
                 }, 3000);
             });
         });
-        // Клиентская валидация формы доставки и оплаты
-        document.getElementById('deliveryPaymentForm')?.addEventListener('submit', function(event) {
-            let isValid = true;
-            const errors = {};
-
-            const city = document.getElementById('id_city').value.trim();
-            const street = document.getElementById('id_street').value.trim();
-            const house = document.getElementById('id_house').value.trim();
-            const apartment = document.getElementById('id_apartment').value.trim();
-            const cardNumber = document.getElementById('id_card_number').value.trim();
-            const cardExpiry = document.getElementById('id_card_expiry').value.trim();
-            const cardCvv = document.getElementById('id_card_cvv').value.trim();
-
-            // Очистка предыдущих ошибок
-            document.querySelectorAll('.error-message').forEach(el => el.remove());
-
-            // Проверка адреса доставки
-            if (!city) {
-                errors['city'] = 'Поле "Город" обязательно для заполнения.';
-                isValid = false;
-            }
-            if (!street) {
-                errors['street'] = 'Поле "Улица" обязательно для заполнения.';
-                isValid = false;
-            }
-            if (!house) {
-                errors['house'] = 'Поле "Дом" обязательно для заполнения.';
-                isValid = false;
-            }
-            if (!apartment) {
-                errors['apartment'] = 'Поле "Квартира" обязательно для заполнения.';
-                isValid = false;
-            }
-
-            // Проверка данных карты (если заполнены)
-            if (cardNumber) {
-                if (!/^\d{16}$/.test(cardNumber)) {
-                    errors['card_number'] = 'Номер карты должен состоять из 16 цифр.';
-                    isValid = false;
-                }
-            }
-            if (cardExpiry) {
-                if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(cardExpiry)) {
-                    errors['card_expiry'] = 'Срок действия должен быть в формате MM/YY.';
-                    isValid = false;
-                } else {
-                    const [month, year] = cardExpiry.split('/');
-                    const currentYear = new Date().getFullYear() % 100;
-                    const currentMonth = new Date().getMonth() + 1;
-                    if (parseInt(year) < currentYear || (parseInt(year) === currentYear && parseInt(month) < currentMonth)) {
-                        errors['card_expiry'] = 'Срок действия карты истёк.';
-                        isValid = false;
-                    }
-                }
-            }
-            if (cardCvv) {
-                if (!/^\d{3}$/.test(cardCvv)) {
-                    errors['card_cvv'] = 'CVV должен состоять из 3 цифр.';
-                    isValid = false;
-                }
-            }
-
-            // Если есть ошибки, отображаем их
-            if (!isValid) {
-                event.preventDefault();
-                for (const [field, message] of Object.entries(errors)) {
-                    const input = document.getElementById(`id_${field}`);
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'error-message';
-                    errorDiv.textContent = message;
-                    input.parentElement.appendChild(errorDiv);
-                }
-            }
-        });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92b8010f0eb4677e',t:'MTc0Mzg0NTE4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>

@@ -11,6 +11,4 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
-    path('delivery-payment/', views.save_delivery_payment, name='delivery_payment'),
-    path('delete-card/', views.delete_card, name='delete_card'),
 ]

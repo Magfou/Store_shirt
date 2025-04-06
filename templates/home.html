@@ -1,27 +1,6 @@
 <!-- templates/home.html -->
 {% extends 'base.html' %}
-
-{% block pagination %}
-    {% if user.is_authenticated and products_page.has_other_pages %}
-        <div class="pagination-container">
-            <div class="pagination">
-                {% if products_page.has_previous %}
-                    <a href="?page={{ products_page.previous_page_number }}&search={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}" class="page-link">« Назад</a>
-                {% endif %}
-                {% for num in products_page.paginator.page_range %}
-                    {% if products_page.number == num %}
-                        <span class="page-link current">{{ num }}</span>
-                    {% else %}
-                        <a href="?page={{ num }}&search={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}" class="page-link">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
-                {% if products_page.has_next %}
-                    <a href="?page={{ products_page.next_page_number }}&search={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}" class="page-link">Вперёд »</a>
-                {% endif %}
-            </div>
-        </div>
-    {% endif %}
-{% endblock %}
+{% load static %}
 
 {% block content %}
     {% if user.is_authenticated %}
@@ -116,9 +95,33 @@
                             </div>
                         {% endwith %}
                     {% empty %}
-                        <p>Товары не найдены.</p>
+                        <div class="empty-products">
+                            <img src="{% static '/images/empty-cart.png' %}" alt="Товары не найдены">
+                            <p>Товары не найдены.</p>
+                        </div>
                     {% endfor %}
                 </div>
+
+                <!-- Пагинация (переносим сюда, после товаров) -->
+                {% if user.is_authenticated and products_page.has_other_pages %}
+                    <div class="pagination-container">
+                        <div class="pagination">
+                            {% if products_page.has_previous %}
+                                <a href="?page={{ products_page.previous_page_number }}&search={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}" class="page-link">« Назад</a>
+                            {% endif %}
+                            {% for num in products_page.paginator.page_range %}
+                                {% if products_page.number == num %}
+                                    <span class="page-link current">{{ num }}</span>
+                                {% else %}
+                                    <a href="?page={{ num }}&search={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}" class="page-link">{{ num }}</a>
+                                {% endif %}
+                            {% endfor %}
+                            {% if products_page.has_next %}
+                                <a href="?page={{ products_page.next_page_number }}&search={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}" class="page-link">Вперёд »</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     {% else %}
@@ -205,7 +208,7 @@
             border-radius: 25px;
             font-size: 14px;
             color: white;
-            background: linear-gradient(90deg, #333, #555); /* Градиент в стиле сайта */
+            background: linear-gradient(90deg, #333, #555);
             cursor: pointer;
             transition: all 0.3s ease;
             opacity: 0;
@@ -283,34 +286,33 @@
         /* Стили для карточек товаров */
         .product-grid {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* Сетка с переносом на следующий ряд */
             gap: 20px;
-            justify-content: space-between;
             transition: opacity 0.3s ease;
         }
         .product-card {
             position: relative;
-            flex: 0 0 calc(20% - 16px); /* 5 карточек в ряд */
+            width: calc(20% - 16px); /* 5 карточек в ряд (20% ширины минус отступы) */
             background-color: white;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             padding: 15px;
-            text-align: left;
-            min-height: 400px; /* Увеличиваем высоту для кнопки */
+            text-align: center;
+            min-height: 300px;
             opacity: 0;
             transform: translateY(20px);
-            animation: fadeIn 0.5s ease forwards;
-            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), box-shadow 0.3s ease; /* Плавная анимация с "пружинящим" эффектом */
-            cursor: pointer; /* Добавляем cursor: pointer */
+            animation: fadeIn 0.8s ease forwards;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), box-shadow 0.3s ease;
+            cursor: pointer;
         }
         .product-card:hover {
-            transform: translateY(-10px); /* Карточка "выезжает" вверх при наведении */
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); /* Увеличиваем тень */
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
         .product-card img {
             width: 100%;
-            height: 180px;
+            height: 150px;
             object-fit: contain;
             border-radius: 8px;
             transition: transform 0.3s ease;
@@ -340,6 +342,7 @@
         }
         .product-card .price-container {
             display: flex;
+            justify-content: center;
             align-items: center;
             gap: 5px;
             margin-bottom: 10px;
@@ -363,19 +366,32 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: #f39c12; /* Жёлто-оранжевый цвет */
+            background-color: #f39c12;
             color: white;
             font-size: 12px;
             font-weight: bold;
             padding: 5px 10px;
             border-radius: 12px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        /* Анимация пульсации для скидки */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 10px 5px rgba(243, 156, 18, 0.3);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7);
+            }
         }
         /* Стили для кнопки "В корзину" */
         .btn-add-to-cart {
-            position: absolute;
-            bottom: 15px;
-            left: 15px;
             background-color: #333;
             border: none;
             padding: 8px 16px;
@@ -394,24 +410,24 @@
             font-size: 16px;
         }
         .btn-add-to-cart:active {
-            animation: liftEffect 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Эффект поднятия при нажатии, как у карточки */
+            animation: liftEffect 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
         .btn-add-to-cart:disabled {
             background-color: #ccc;
             cursor: not-allowed;
             transform: none;
-            animation: none; /* Отключаем анимации для неактивной кнопки */
+            animation: none;
         }
-        /* Анимация поднятия при нажатии (как у карточки) */
+        /* Анимация поднятия при нажатии */
         @keyframes liftEffect {
             0% {
                 transform: translateY(0);
             }
             50% {
-                transform: translateY(-5px); /* Поднимается вверх на 5px */
+                transform: translateY(-5px);
             }
             100% {
-                transform: translateY(0); /* Возвращается в исходное положение */
+                transform: translateY(0);
             }
         }
         /* Анимация появления кнопки */
@@ -427,6 +443,115 @@
                 transform: translateY(0);
             }
         }
+        /* Стили для пагинации */
+        .pagination-container {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .pagination {
+            display: flex;
+            gap: 10px;
+        }
+        .pagination a, .pagination span {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            color: #333;
+            text-decoration: none;
+            background-color: #f0f4f8;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.5s ease forwards;
+        }
+        .pagination a:hover {
+            background: linear-gradient(90deg, #333, #555);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .pagination a:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            animation: liftEffect 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .pagination .current {
+            background: linear-gradient(90deg, #333, #555);
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        /* Задержка анимации для каждой кнопки пагинации */
+        .pagination a:nth-child(1), .pagination span:nth-child(1) { animation-delay: 0.1s; }
+        .pagination a:nth-child(2), .pagination span:nth-child(2) { animation-delay: 0.2s; }
+        .pagination a:nth-child(3), .pagination span:nth-child(3) { animation-delay: 0.3s; }
+        .pagination a:nth-child(4), .pagination span:nth-child(4) { animation-delay: 0.4s; }
+        .pagination a:nth-child(5), .pagination span:nth-child(5) { animation-delay: 0.5s; }
+        /* Стили для "Товары не найдены" */
+        .empty-products {
+            text-align: center;
+            padding: 40px 20px;
+            width: 100%;
+        }
+        .empty-products img {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+            animation: spring 1.5s infinite ease-in-out, sway 2s infinite ease-in-out, glow 2s infinite ease-in-out;
+        }
+        .empty-products p {
+            font-size: 18px;
+            color: #6b7280;
+            margin: 0;
+        }
+        /* Эффект пружины */
+        @keyframes spring {
+            0% {
+                transform: scale(1);
+            }
+            30% {
+                transform: scale(1.3, 0.7);
+            }
+            50% {
+                transform: scale(0.7, 1.3);
+            }
+            70% {
+                transform: scale(1.1, 0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        /* Эффект покачивания */
+        @keyframes sway {
+            0% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(5deg);
+            }
+            75% {
+                transform: rotate(-5deg);
+            }
+            100% {
+                transform: rotate(0deg);
+            }
+        }
+        /* Эффект свечения */
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(26, 115, 232, 0.5);
+            }
+            100% {
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            }
+        }
     </style>
 
     <script>
@@ -435,8 +560,9 @@
             const search = document.getElementById('search').value;
             const category = document.getElementById('category').value;
             const sort = document.querySelector('.sort-options li.selected')?.dataset.value || 'price';
+            const page = new URLSearchParams(window.location.search).get('page') || '1';
 
-            fetch(`/?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}&sort=${encodeURIComponent(sort)}`, {
+            fetch(`/?search=${encodeURIComponent(search)}&category=${encodeURIComponent(category)}&sort=${encodeURIComponent(sort)}&page=${page}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
@@ -448,7 +574,12 @@
                 setTimeout(() => {
                     productGrid.innerHTML = '';
                     if (data.products.length === 0) {
-                        productGrid.innerHTML = '<p>Товары не найдены.</p>';
+                        productGrid.innerHTML = `
+                            <div class="empty-products">
+                                <img src="{% static '/images/empty-cart.png' %}" alt="Товары не найдены">
+                                <p>Товары не найдены.</p>
+                            </div>
+                        `;
                     } else {
                         data.products.forEach((item, index) => {
                             const card = document.createElement('div');
@@ -481,6 +612,12 @@
                         bindAddToCartButtons();
                     }
                     productGrid.style.opacity = '1';
+
+                    // Обновляем пагинацию
+                    const paginationContainer = document.querySelector('.pagination-container');
+                    if (paginationContainer) {
+                        paginationContainer.innerHTML = data.pagination_html;
+                    }
                 }, 300);
             })
             .catch(error => {
@@ -533,12 +670,12 @@
                 flyingItem.style.left = `${cartRect.left + cartRect.width / 2 - 25}px`;
                 flyingItem.style.top = `${cartRect.top + cartRect.height / 2 - 25}px`;
                 flyingItem.style.opacity = '0';
-                flyingItem.style.transform = 'scale(0.5) rotate(360deg)';
+                flyingItem.style.transform = 'scale(0.5) rotate(720deg)';
             }, 50);
 
             setTimeout(() => {
                 flyingItem.remove();
-            }, 600);
+            }, 1000);
         }
 
         // Функция для добавления товара в корзину
@@ -609,9 +746,19 @@
             const cartItemsContainer = document.getElementById('cart-items');
             cartItemsContainer.innerHTML = '';
             if (cartItems.length === 0) {
-                cartItemsContainer.innerHTML = '<p>Корзина пуста.</p>';
+                cartItemsContainer.innerHTML = `
+                    <div class="empty-cart">
+                        <img src="{% static '/images/empty-cart.png' %}" alt="Empty Cart">
+                        <p>Ваша корзина пуста.</p>
+                    </div>
+                `;
             } else {
                 cartItems.forEach(item => {
+                    console.log('Cart item:', item); // Отладочный вывод
+                    if (!item.id) {
+                        console.error('Ошибка: у товара в корзине отсутствует id:', item);
+                        return;
+                    }
                     const itemElement = document.createElement('div');
                     itemElement.className = 'cart-item';
                     itemElement.innerHTML = `
@@ -619,8 +766,8 @@
                         <div class="cart-item-info">
                             <h4>${item.product_name}</h4>
                             <p>${item.quantity} x ${item.price} $ = ${item.total_price} $</p>
-                            <button class="btn-remove-item" data-cart-item-id="${item.id}">Удалить</button>
                         </div>
+                        <button class="btn-remove-item" data-cart-item-id="${item.id}"></button>
                     `;
                     cartItemsContainer.appendChild(itemElement);
                 });
@@ -629,6 +776,10 @@
                 document.querySelectorAll('.btn-remove-item').forEach(button => {
                     button.addEventListener('click', function() {
                         const cartItemId = this.dataset.cartItemId;
+                        if (!cartItemId) {
+                            console.error('Ошибка: cartItemId отсутствует у кнопки удаления');
+                            return;
+                        }
                         removeFromCart(cartItemId);
                     });
                 });
