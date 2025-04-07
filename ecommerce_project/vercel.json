@@ -11,6 +11,9 @@
        "src": "/(.*)",
        "dest": "manage.py"
      }
-   ]
+   ],
+   "env": {
+     "DJANGO_SETTINGS_MODULE": "project"
+   }
  }
  
