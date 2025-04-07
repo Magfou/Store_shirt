@@ -5,16 +5,14 @@
 {% block content %}
     {% if user.is_authenticated %}
         <div class="row">
-            <!-- Фильтры в левом углу -->
+            <!-- Фильтры -->
             <div class="col-md-3">
                 <div class="filters">
                     <h3>Фильтры</h3>
                     <form method="get" class="filter-form">
-                        <!-- Поиск по названию и кнопка "Фильтровать" -->
                         <div class="filter-group search-filter-group">
                             <div class="search-container">
                                 <input type="text" name="search" id="search" value="{{ search_query }}" placeholder="Введите название">
-                                <!-- Поле выбора категории под поиском -->
                                 <div class="filter-group category-filter-group">
                                     <select name="category" id="category">
                                         <option value="">Все категории</option>
@@ -38,7 +36,6 @@
                                         </ul>
                                     </div>
                                 </div>
-                                <!-- Кнопки "Применить" и "Сбросить" -->
                                 <div class="filter-buttons">
                                     <button type="button" class="btn btn-primary btn-apply" onclick="applyFilters()">Применить</button>
                                     <button type="button" class="btn btn-primary btn-reset" onclick="resetFilters()">Сбросить</button>
@@ -55,44 +52,50 @@
                 <div class="product-grid" id="product-grid">
                     {% for item in products_with_discount %}
                         {% with product=item.product %}
-                            <div class="product-card">
-                                <!-- Изображение -->
-                                {% if product.image %}
-                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" data-image="{{ product.image.url }}">
-                                {% else %}
-                                    <img src="https://via.placeholder.com/200" alt="Нет изображения" data-image="https://via.placeholder.com/200">
-                                {% endif %}
-
-                                <!-- Процент скидки в правом верхнем углу -->
-                                {% if product.discount_price and item.discount_percent %}
-                                    <div class="discount-percentage">
-                                        -{{ item.discount_percent }}%
-                                    </div>
-                                {% endif %}
-
-                                <!-- Название товара и статус -->
-                                <div class="product-info">
-                                    <h3>{{ product.name }}</h3>
-                                    <div class="availability {% if product.in_stock %}in-stock{% else %}out-of-stock{% endif %}">
-                                        {% if product.in_stock %}В наличии{% else %}Нет в наличии{% endif %}
-                                    </div>
-                                </div>
-
-                                <!-- Цены -->
-                                <div class="price-container">
-                                    {% if product.discount_price %}
-                                        <span class="discounted-price">{{ product.discount_price }} $</span>
-                                        <span class="original-price">{{ product.price }} $</span>
+                            <a href="{% url 'product_detail' product.id %}" class="product-card-link">
+                                <div class="product-card">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" data-image="{{ product.image.url }}">
                                     {% else %}
-                                        <span class="price">{{ product.price }} $</span>
+                                        <img src="https://via.placeholder.com/200" alt="Нет изображения" data-image="https://via.placeholder.com/200">
                                     {% endif %}
+                                    {% if product.discount_price and item.discount_percent %}
+                                        <div class="discount-percentage">
+                                            -{{ item.discount_percent }}%
+                                        </div>
+                                    {% endif %}
+                                    <div class="product-info">
+                                        <h3>{{ product.name }}</h3>
+                                        <div class="rating">
+                                            <span class="average-rating">{{ product.average_rating|floatformat:1 }}</span>
+                                            <span class="stars">
+                                                {% for i in "12345" %}
+                                                    {% if i|add:0 <= product.average_rating %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </span>
+                                            <span class="review-count">({{ product.reviews.count }})</span>
+                                        </div>
+                                        <div class="availability {% if product.in_stock %}in-stock{% else %}out-of-stock{% endif %}">
+                                            {% if product.in_stock %}В наличии{% else %}Нет в наличии{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="price-container">
+                                        {% if product.discount_price %}
+                                            <span class="discounted-price">{{ product.discount_price }} $</span>
+                                            <span class="original-price">{{ product.price }} $</span>
+                                        {% else %}
+                                            <span class="price">{{ product.price }} $</span>
+                                        {% endif %}
+                                    </div>
+                                    <button class="btn btn-add-to-cart" data-product-id="{{ product.id }}" {% if not product.in_stock %}disabled{% endif %}>
+                                        <i class="fas fa-cart-plus"></i> В корзину
+                                    </button>
                                 </div>
-
-                                <!-- Кнопка "В корзину" -->
-                                <button class="btn btn-add-to-cart" data-product-id="{{ product.id }}" {% if not product.in_stock %}disabled{% endif %}>
-                                    <i class="fas fa-cart-plus"></i> В корзину
-                                </button>
-                            </div>
+                            </a>
                         {% endwith %}
                     {% empty %}
                         <div class="empty-products">
@@ -103,7 +106,7 @@
                 </div>
 
                 <!-- Пагинация -->
-                {% if user.is_authenticated and products_page.has_other_pages %}
+                {% if products_page.has_other_pages %}
                     <div class="pagination-container">
                         <div class="pagination">
                             {% if products_page.has_previous %}
@@ -132,7 +135,6 @@
     {% endif %}
 
     <style>
-        /* Стили для фильтров */
         .filters {
             background-color: #fff;
             padding: 20px;
@@ -196,8 +198,6 @@
         .search-container input { animation-delay: 0.1s; }
         .category-filter-group select { animation-delay: 0.2s; }
         .filter-sort-container { animation-delay: 0.3s; }
-
-        /* Обновлённые стили для кнопки "Фильтровать" */
         .filter-sort-container {
             position: relative;
             display: inline-block;
@@ -272,8 +272,6 @@
             color: white;
             font-weight: 500;
         }
-
-        /* Стили для кнопок "Применить" и "Сбросить" */
         .filter-buttons {
             display: flex;
             gap: 10px;
@@ -282,24 +280,26 @@
         .btn-apply, .btn-reset {
             flex: 1;
         }
-
-        /* Стили для карточек товаров */
         .product-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             transition: opacity 0.3s ease;
         }
+        .product-card-link {
+            text-decoration: none;
+            color: inherit;
+            width: calc(20% - 16px);
+        }
         .product-card {
             position: relative;
-            width: calc(20% - 16px);
             background-color: white;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             padding: 15px;
             text-align: center;
-            min-height: 300px;
+            min-height: 320px;
             opacity: 0;
             transform: translateY(20px);
             animation: fadeIn 0.8s ease forwards;
@@ -328,6 +328,22 @@
             margin: 0 0 5px 0;
             color: #333;
             font-weight: 500;
+        }
+        .product-card .rating {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .product-card .average-rating {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        .product-card .review-count {
+            font-size: 12px;
+            color: #6b7280;
         }
         .product-card .availability {
             font-size: 12px;
@@ -500,52 +516,9 @@
             color: #6b7280;
             margin: 0;
         }
-        @keyframes spring {
-            0% {
-                transform: scale(1);
-            }
-            30% {
-                transform: scale(1.3, 0.7);
-            }
-            50% {
-                transform: scale(0.7, 1.3);
-            }
-            70% {
-                transform: scale(1.1, 0.9);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-        @keyframes sway {
-            0% {
-                transform: rotate(0deg);
-            }
-            25% {
-                transform: rotate(5deg);
-            }
-            75% {
-                transform: rotate(-5deg);
-            }
-            100% {
-                transform: rotate(0deg);
-            }
-        }
-        @keyframes glow {
-            0% {
-                box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-            }
-            50% {
-                box-shadow: 0 0 20px rgba(26, 115, 232, 0.5);
-            }
-            100% {
-                box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-            }
-        }
     </style>
 
     <script>
-        // Функция для динамического обновления карточек через AJAX
         function updateFilters() {
             const search = document.getElementById('search').value;
             const category = document.getElementById('category').value;
@@ -573,32 +546,43 @@
                     } else {
                         data.products.forEach((item, index) => {
                             const card = document.createElement('div');
-                            card.className = 'product-card';
-                            card.style.animationDelay = `${index * 0.1}s`;
+                            card.className = 'product-card-link';
                             card.innerHTML = `
-                                <img src="${item.image}" alt="${item.name}" data-image="${item.image}">
-                                ${item.discount_percent ? `<div class="discount-percentage">-${item.discount_percent}%</div>` : ''}
-                                <div class="product-info">
-                                    <h3>${item.name}</h3>
-                                    <div class="availability ${item.in_stock ? 'in-stock' : 'out-of-stock'}">
-                                        ${item.in_stock ? 'В наличии' : 'Нет в наличии'}
+                                <a href="/product/${item.id}/">
+                                    <div class="product-card" style="animation-delay: ${index * 0.1}s">
+                                        <img src="${item.image}" alt="${item.name}" data-image="${item.image}">
+                                        ${item.discount_percent ? `<div class="discount-percentage">-${item.discount_percent}%</div>` : ''}
+                                        <div class="product-info">
+                                            <h3>${item.name}</h3>
+                                            <div class="rating">
+                                                <span class="average-rating">${item.average_rating.toFixed(1)}</span>
+                                                <span class="stars">
+                                                    ${[...Array(5)].map((_, i) => `
+                                                        <i class="${i + 1 <= item.average_rating ? 'fas' : 'far'} fa-star"></i>
+                                                    `).join('')}
+                                                </span>
+                                                <span class="review-count">(${item.review_count})</span>
+                                            </div>
+                                            <div class="availability ${item.in_stock ? 'in-stock' : 'out-of-stock'}">
+                                                ${item.in_stock ? 'В наличии' : 'Нет в наличии'}
+                                            </div>
+                                        </div>
+                                        <div class="price-container">
+                                            ${item.discount_price ? `
+                                                <span class="discounted-price">${item.discount_price} $</span>
+                                                <span class="original-price">${item.price} $</span>
+                                            ` : `
+                                                <span class="price">${item.price} $</span>
+                                            `}
+                                        </div>
+                                        <button class="btn btn-add-to-cart" data-product-id="${item.id}" ${item.in_stock ? '' : 'disabled'}>
+                                            <i class="fas fa-cart-plus"></i> В корзину
+                                        </button>
                                     </div>
-                                </div>
-                                <div class="price-container">
-                                    ${item.discount_price ? `
-                                        <span class="discounted-price">${item.discount_price} $</span>
-                                        <span class="original-price">${item.price} $</span>
-                                    ` : `
-                                        <span class="price">${item.price} $</span>
-                                    `}
-                                </div>
-                                <button class="btn btn-add-to-cart" data-product-id="${item.id}" ${item.in_stock ? '' : 'disabled'}>
-                                    <i class="fas fa-cart-plus"></i> В корзину
-                                </button>
+                                </a>
                             `;
                             productGrid.appendChild(card);
                         });
-                        bindAddToCartButtons();
                     }
                     productGrid.style.opacity = '1';
 
@@ -613,7 +597,6 @@
             });
         }
 
-        // Функция для применения фильтров с обновлением URL
         function applyFilters() {
             const search = document.getElementById('search').value;
             const category = document.getElementById('category').value;
@@ -623,7 +606,6 @@
             window.location.href = url;
         }
 
-        // Функция для сброса фильтров
         function resetFilters() {
             document.getElementById('search').value = '';
             document.getElementById('category').value = '';
@@ -640,173 +622,6 @@
             window.location.href = '/';
         }
 
-        // Функция для анимации "полета" товара в корзину
-        function animateFlyToCart(button, imageSrc) {
-            const cartIcon = document.getElementById('cart-toggle');
-            const buttonRect = button.getBoundingClientRect();
-            const cartRect = cartIcon.getBoundingClientRect();
-
-            const flyingItem = document.createElement('div');
-            flyingItem.className = 'flying-item';
-            flyingItem.style.backgroundImage = `url(${imageSrc})`;
-            flyingItem.style.left = `${buttonRect.left + buttonRect.width / 2 - 25}px`;
-            flyingItem.style.top = `${buttonRect.top + buttonRect.height / 2 - 25}px`;
-
-            document.body.appendChild(flyingItem);
-
-            setTimeout(() => {
-                flyingItem.style.left = `${cartRect.left + cartRect.width / 2 - 25}px`;
-                flyingItem.style.top = `${cartRect.top + cartRect.height / 2 - 25}px`;
-                flyingItem.style.opacity = '0';
-                flyingItem.style.transform = 'scale(0.5) rotate(720deg)';
-            }, 50);
-
-            setTimeout(() => {
-                flyingItem.remove();
-            }, 1000);
-        }
-
-        // Функция для добавления товара в корзину
-        function addToCart(productId, button) {
-            const imageSrc = button.closest('.product-card').querySelector('img').dataset.image;
-            animateFlyToCart(button, imageSrc);
-
-            fetch('/add_to_cart/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': getCsrfToken(),
-                },
-                body: `product_id=${productId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('cart-count').textContent = data.total_items;
-                    updateCartDisplay(data.cart_items, data.cart_total);
-                    openCart();
-                } else {
-                    console.error('Ошибка при добавлении товара в корзину:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-            });
-        }
-
-        // Функция для удаления товара из корзины
-        function removeFromCart(cartItemId) {
-            fetch('/remove_from_cart/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': getCsrfToken(),
-                },
-                body: `cart_item_id=${cartItemId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('cart-count').textContent = data.total_items;
-                    updateCartDisplay(data.cart_items, data.cart_total);
-                } else {
-                    console.error('Ошибка при удалении товара из корзины:', data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-            });
-        }
-
-        // Функция для получения CSRF-токена
-        function getCsrfToken() {
-            const cookieValue = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('csrftoken='))
-                ?.split('=')[1];
-            return cookieValue;
-        }
-
-        // Функция для обновления отображения корзины
-        function updateCartDisplay(cartItems, cartTotal) {
-            const cartItemsContainer = document.getElementById('cart-items');
-            const cartCountElement = document.getElementById('cart-count');
-            const cartTotalElement = document.getElementById('cart-total');
-
-            cartItemsContainer.innerHTML = '';
-            if (!cartItems || cartItems.length === 0) {
-                cartItemsContainer.innerHTML = `
-                    <div class="empty-cart">
-                        <img src="{% static '/images/empty-cart.png' %}" alt="Empty Cart">
-                        <p>Ваша корзина пуста.</p>
-                    </div>
-                `;
-                cartCountElement.textContent = '0';
-                cartTotalElement.textContent = `Итого: 0 $`;
-            } else {
-                cartItems.forEach(item => {
-                    if (!item.id) {
-                        console.error('Ошибка: у товара в корзине отсутствует id:', item);
-                        return;
-                    }
-                    const itemElement = document.createElement('div');
-                    itemElement.className = 'cart-item';
-                    itemElement.innerHTML = `
-                        <img src="${item.image}" alt="${item.product_name}">
-                        <div class="cart-item-info">
-                            <h4>${item.product_name}</h4>
-                            <p>${item.quantity} x ${item.price} $ = ${item.total_price} $</p>
-                        </div>
-                        <button class="btn-remove-item" data-cart-item-id="${item.id}"></button>
-                    `;
-                    cartItemsContainer.appendChild(itemElement);
-                });
-
-                document.querySelectorAll('.btn-remove-item').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const cartItemId = this.dataset.cartItemId;
-                        if (!cartItemId) {
-                            console.error('Ошибка: cartItemId отсутствует у кнопки удаления');
-                            return;
-                        }
-                        removeFromCart(cartItemId);
-                    });
-                });
-
-                cartCountElement.textContent = cartItems.reduce((total, item) => total + item.quantity, 0);
-                cartTotalElement.textContent = `Итого: ${cartTotal} $`;
-            }
-        }
-
-        // Функция для открытия корзины
-        function openCart() {
-            const cartSidebar = document.getElementById('cart-sidebar');
-            const cartOverlay = document.getElementById('cart-overlay');
-            cartSidebar.classList.add('active');
-            cartOverlay.classList.add('active');
-        }
-
-        // Функция для закрытия корзины
-        function closeCart() {
-            const cartSidebar = document.getElementById('cart-sidebar');
-            const cartOverlay = document.getElementById('cart-overlay');
-            cartSidebar.classList.remove('active');
-            cartOverlay.classList.remove('active');
-        }
-
-        // Привязка обработчиков событий для кнопок "В корзину"
-        function bindAddToCartButtons() {
-            document.querySelectorAll('.btn-add-to-cart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = this.dataset.productId;
-                    addToCart(productId, this);
-                });
-            });
-        }
-
-        // Плавная анимация и динамическое обновление
         document.addEventListener('DOMContentLoaded', function() {
             {% if user.is_authenticated %}
                 const productGrid = document.querySelector('.product-grid');
@@ -853,28 +668,6 @@
                         option.classList.add('selected');
                     }
                 });
-
-                // Инициализация корзины при загрузке страницы
-                fetch('/get_cart/', {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    updateCartDisplay(data.cart_items, data.cart_total);
-                })
-                .catch(error => {
-                    console.error('Ошибка при получении корзины:', error);
-                    updateCartDisplay([], 0); // Если ошибка, отображаем пустую корзину
-                });
-
-                // Обработчики для корзины
-                document.getElementById('cart-toggle').addEventListener('click', openCart);
-                document.getElementById('cart-overlay').addEventListener('click', closeCart);
-
-                // Привязка обработчиков для кнопок "В корзину"
-                bindAddToCartButtons();
             {% endif %}
         });
     </script>

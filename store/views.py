@@ -3,93 +3,73 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db.models import Q
-from .models import Product, Category, Cart, CartItem, Order, OrderItem, Payment
+from django.template.loader import render_to_string
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 import stripe
+from .models import Product, Category, Cart, CartItem, Order, OrderItem, Payment, Review
 
 # Настройка Stripe (замените на ваш секретный ключ)
 stripe.api_key = 'sk_test_51RApJYPNAUNwoBnEAfZkaQrZemAYYvIoMl8i0NMgNxgxXbhwGlBv5vtH1reIbF5tfXQo4zDYgxkBzO9Us8BVuOVc00lmuviAtl'
 
+@login_required
 def home(request):
-    search_query = request.GET.get('search', '').strip()
-    category_id = request.GET.get('category', '')
-    sort_by = request.GET.get('sort', 'price')
-    price_min = request.GET.get('price_min', '')
-    price_max = request.GET.get('price_max', '')
-
+    categories = Category.objects.all()
     products = Product.objects.all()
 
-    if search_query:
-        products = products.filter(
-            Q(name__icontains=search_query)
-        )
+    # Фильтры
+    search_query = request.GET.get('search', '')
+    category_id = request.GET.get('category', '')
+    sort_by = request.GET.get('sort', 'price')
 
+    if search_query:
+        products = products.filter(Q(name__icontains=search_query))
     if category_id:
         products = products.filter(category_id=category_id)
 
-    if price_min and price_max:
-        products = products.filter(price__gte=price_min, price__lte=price_max)
-    elif price_min:
-        products = products.filter(price__gte=price_min)
-    elif price_max:
-        products = products.filter(price__lte=price_max)
-
-    if sort_by == 'in_stock':
-        products = products.filter(in_stock=True)
-    elif sort_by == '-in_stock':
-        products = products.filter(in_stock=False)
-    else:
+    if sort_by:
         products = products.order_by(sort_by)
 
+    # Пагинация для продуктов
+    paginator = Paginator(products, 15)
+    page_number = request.GET.get('page', 1)
+    products_page = paginator.get_page(page_number)
+
+    # Вычисляем скидки для текущей страницы
     products_with_discount = []
-    for product in products:
+    for product in products_page:
         discount_percent = None
-        if product.discount_price and product.price > product.discount_price:
-            discount_percent = round(((product.price - product.discount_price) / product.price) * 100)
+        if product.discount_price:
+            discount_percent = int(((product.price - product.discount_price) / product.price) * 100)
         products_with_discount.append({
             'product': product,
             'discount_percent': discount_percent
         })
 
-    paginator = Paginator(products_with_discount, 15)
-    page_number = request.GET.get('page')
-    products_page = paginator.get_page(page_number)
-
-    categories = Category.objects.all()
-
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         products_data = []
-        for item in products_page:
+        for item in products_with_discount:
             product = item['product']
-            discount_percent = None
-            if product.discount_price and product.price > product.discount_price:
-                discount_percent = round(((product.price - product.discount_price) / product.price) * 100)
             products_data.append({
                 'id': product.id,
                 'name': product.name,
                 'price': float(product.price),
                 'discount_price': float(product.discount_price) if product.discount_price else None,
-                'discount_percent': discount_percent,
+                'discount_percent': item['discount_percent'],
                 'image': product.image.url if product.image else 'https://via.placeholder.com/200',
                 'in_stock': product.in_stock,
+                'average_rating': product.average_rating,
+                'review_count': product.reviews.count(),
             })
 
-        pagination_html = ''
-        if products_page.has_other_pages():
-            pagination_html += '<div class="pagination">'
-            if products_page.has_previous():
-                pagination_html += f'<a href="?page={products_page.previous_page_number}&search={search_query}&category={category_id}&sort={sort_by}&price_min={price_min}&price_max={price_max}" class="page-link">« Назад</a>'
-            for num in products_page.paginator.page_range:
-                if products_page.number == num:
-                    pagination_html += f'<span class="page-link current">{num}</span>'
-                else:
-                    pagination_html += f'<a href="?page={num}&search={search_query}&category={category_id}&sort={sort_by}&price_min={price_min}&price_max={price_max}" class="page-link">{num}</a>'
-            if products_page.has_next():
-                pagination_html += f'<a href="?page={products_page.next_page_number}&search={search_query}&category={category_id}&sort={sort_by}&price_min={price_min}&price_max={price_max}" class="page-link">Вперёд »</a>'
-            pagination_html += '</div>'
+        pagination_html = render_to_string('pagination.html', {
+            'products_page': products_page,
+            'search_query': search_query,
+            'selected_category': category_id,
+            'sort_by': sort_by,
+        }, request=request)
 
         return JsonResponse({
             'products': products_data,
@@ -97,14 +77,12 @@ def home(request):
         })
 
     context = {
-        'products_with_discount': products_page,
-        'products_page': products_page,
+        'products_with_discount': products_with_discount,
         'categories': categories,
         'search_query': search_query,
         'selected_category': category_id,
         'sort_by': sort_by,
-        'price_min': price_min,
-        'price_max': price_max,
+        'products_page': products_page,
     }
     return render(request, 'home.html', context)
 
@@ -353,3 +331,91 @@ def logout_view(request):
         messages.success(request, 'Вы успешно вышли из системы.')
         return redirect('home')
     return redirect('home')
+
+# Функция для проверки, купил ли пользователь товар
+def has_purchased_product(user, product):
+    return Order.objects.filter(
+        user=user,
+        items__product=product,
+        status__in=['SHIPPED', 'DELIVERED']
+    ).exists()
+
+@login_required
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    reviews = product.reviews.all()
+    specifications = product.specifications.all()
+
+    # Проверяем, купил ли пользователь товар
+    can_review = has_purchased_product(request.user, product)
+
+    # Проверяем, оставил ли пользователь уже отзыв
+    has_reviewed = Review.objects.filter(product=product, user=request.user).exists()
+
+    if request.method == 'POST' and can_review and not has_reviewed:
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment')
+
+        if not rating or not comment:
+            messages.error(request, 'Пожалуйста, укажите оценку и комментарий.')
+        else:
+            try:
+                rating = int(rating)
+                if 1 <= rating <= 5:
+                    Review.objects.create(
+                        product=product,
+                        user=request.user,
+                        rating=rating,
+                        comment=comment
+                    )
+                    product.update_average_rating()
+                    messages.success(request, 'Ваш отзыв успешно добавлен!')
+                else:
+                    messages.error(request, 'Оценка должна быть от 1 до 5.')
+            except ValueError:
+                messages.error(request, 'Неверный формат оценки.')
+        return redirect('product_detail', product_id=product.id)
+
+    context = {
+        'product': product,
+        'reviews': reviews,
+        'specifications': specifications,
+        'can_review': can_review and not has_reviewed,
+        'average_rating': product.average_rating,
+        'review_count': reviews.count(),
+    }
+    return render(request, 'product_detail.html', context)
+
+@login_required
+def edit_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, user=request.user)
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment')
+
+        if not rating or not comment:
+            messages.error(request, 'Пожалуйста, укажите оценку и комментарий.')
+        else:
+            try:
+                rating = int(rating)
+                if 1 <= rating <= 5:
+                    review.rating = rating
+                    review.comment = comment
+                    review.save()
+                    review.product.update_average_rating()
+                    messages.success(request, 'Ваш отзыв успешно обновлён!')
+                else:
+                    messages.error(request, 'Оценка должна быть от 1 до 5.')
+            except ValueError:
+                messages.error(request, 'Неверный формат оценки.')
+        return redirect('product_detail', product_id=review.product.id)
+    return render(request, 'edit_review.html', {'review': review})
+
+@login_required
+def delete_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, user=request.user)
+    product_id = review.product.id
+    review.delete()
+    review.product.update_average_rating()
+    messages.success(request, 'Ваш отзыв успешно удалён!')
+    return redirect('product_detail', product_id=product_id)

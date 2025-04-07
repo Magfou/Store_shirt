@@ -1,0 +1,202 @@
+<!-- templates/product_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="product-detail">
+        <h2>{{ product.name }}</h2>
+        <div class="product-info row">
+            <div class="col-md-6">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid">
+                {% else %}
+                    <img src="https://via.placeholder.com/400" alt="Нет изображения" class="img-fluid">
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <p><strong>Цена:</strong>
+                    {% if product.discount_price %}
+                        <span class="discounted-price">{{ product.discount_price }} $</span>
+                        <span class="original-price">{{ product.price }} $</span>
+                    {% else %}
+                        <span class="price">{{ product.price }} $</span>
+                    {% endif %}
+                </p>
+                <p><strong>Наличие:</strong> {% if product.in_stock %}В наличии{% else %}Нет в наличии{% endif %}</p>
+                <p><strong>Рейтинг:</strong> {{ product.average_rating|floatformat:1 }} / 5 ({{ product.reviews.count }} отзывов)</p>
+                <button class="btn btn-primary btn-add-to-cart" data-product-id="{{ product.id }}" {% if not product.in_stock %}disabled{% endif %}>
+                    <i class="fas fa-cart-plus"></i> В корзину
+                </button>
+            </div>
+        </div>
+
+        <!-- Вкладки -->
+        <ul class="nav nav-tabs mt-4" id="productTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="description-tab" data-bs-toggle="tab" href="#description" role="tab" aria-controls="description" aria-selected="true">Описание</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="specifications-tab" data-bs-toggle="tab" href="#specifications" role="tab" aria-controls="specifications" aria-selected="false">Характеристики</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="reviews-tab" data-bs-toggle="tab" href="#reviews" role="tab" aria-controls="reviews" aria-selected="false">Отзывы ({{ review_count }})</a>
+            </li>
+        </ul>
+        <div class="tab-content mt-3" id="productTabsContent">
+            <!-- Вкладка "Описание" -->
+            <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                {% if product.description %}
+                    <p>{{ product.description }}</p>
+                {% else %}
+                    <p>Описание отсутствует.</p>
+                {% endif %}
+            </div>
+            <!-- Вкладка "Характеристики" -->
+            <div class="tab-pane fade" id="specifications" role="tabpanel" aria-labelledby="specifications-tab">
+                {% if specifications %}
+                    <ul class="specifications-list">
+                        {% for spec in specifications %}
+                            <li><strong>{{ spec.name }}:</strong> {{ spec.value }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>Характеристики товара пока не указаны.</p>
+                {% endif %}
+            </div>
+            <!-- Вкладка "Отзывы" -->
+            <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                <div class="reviews-section">
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="review">
+                                <p><strong>{{ review.user.username }}</strong> ({{ review.rating }}/5)</p>
+                                <p>{{ review.comment }}</p>
+                                <p><small>{{ review.created_at|date:"d M Y" }}</small></p>
+                                {% if review.user == request.user %}
+                                    <div class="review-actions">
+                                        <a href="{% url 'edit_review' review.id %}" class="btn btn-sm btn-primary">Редактировать</a>
+                                        <a href="{% url 'delete_review' review.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Вы уверены, что хотите удалить этот отзыв?')">Удалить</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p>Отзывов пока нет. Будьте первым!</p>
+                    {% endif %}
+                </div>
+
+                <!-- Форма для добавления отзыва -->
+                {% if can_review %}
+                    <div class="review-form mt-4">
+                        <h3>Оставить отзыв</h3>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="rating">Оценка (1-5):</label>
+                                <select name="rating" id="rating" required>
+                                    <option value="">Выберите оценку</option>
+                                    {% for i in "12345" %}
+                                        <option value="{{ i }}">{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="comment">Комментарий:</label>
+                                <textarea name="comment" id="comment" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Отправить</button>
+                        </form>
+                    </div>
+                {% else %}
+                    {% if has_reviewed %}
+                        <p>Вы уже оставили отзыв на этот товар.</p>
+                    {% else %}
+                        <p>Вы можете оставить отзыв после покупки и доставки товара.</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .product-detail {
+            padding: 20px;
+        }
+        .product-detail img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+        .discounted-price {
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }
+        .original-price {
+            font-size: 14px;
+            color: #6b7280;
+            text-decoration: line-through;
+            margin-left: 10px;
+        }
+        .price {
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }
+        .btn-add-to-cart {
+            margin-top: 10px;
+        }
+        .nav-tabs {
+            border-bottom: 2px solid #d1d5db;
+        }
+        .nav-tabs .nav-link {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #333;
+            border: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #1a73e8;
+            border-bottom: 2px solid #1a73e8;
+        }
+        .nav-tabs .nav-link.active {
+            color: #1a73e8;
+            border-bottom: 2px solid #1a73e8;
+            font-weight: 500;
+        }
+        .tab-content {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .specifications-list {
+            list-style: none;
+            padding: 0;
+        }
+        .specifications-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .reviews-section {
+            border-top: 1px solid #d1d5db;
+            padding-top: 20px;
+        }
+        .review {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 0;
+            position: relative;
+        }
+        .review-actions {
+            margin-top: 10px;
+        }
+        .review-actions .btn {
+            margin-right: 10px;
+        }
+        .review-form {
+            border-top: 1px solid #d1d5db;
+            padding-top: 20px;
+        }
+    </style>
+{% endblock %}

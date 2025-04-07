@@ -1,0 +1,16 @@
+<!-- templates/pagination.html -->
+<div class="pagination">
+   {% if products_page.has_previous %}
+       <a href="?page={{ products_page.previous_page_number }}&search={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}" class="page-link">« Назад</a>
+   {% endif %}
+   {% for num in products_page.paginator.page_range %}
+       {% if products_page.number == num %}
+           <span class="page-link current">{{ num }}</span>
+       {% else %}
+           <a href="?page={{ num }}&search={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}" class="page-link">{{ num }}</a>
+       {% endif %}
+   {% endfor %}
+   {% if products_page.has_next %}
+       <a href="?page={{ products_page.next_page_number }}&search={{ search_query }}&category={{ selected_category }}&sort={{ sort_by }}" class="page-link">Вперёд »</a>
+   {% endif %}
+</div>

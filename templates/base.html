@@ -84,7 +84,9 @@
         .form-group {
             margin-bottom: 20px;
         }
-        .form-group input {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 12px 15px;
             font-size: 16px;
@@ -96,22 +98,39 @@
             transform: translateY(20px);
             animation: slideUp 0.5s ease forwards;
         }
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #1a73e8;
             background-color: white;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        .form-group input::placeholder {
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
             color: #6b7280;
         }
-        .form-group:nth-child(1) input { animation-delay: 0.1s; }
-        .form-group:nth-child(2) input { animation-delay: 0.2s; }
-        .form-group:nth-child(3) input { animation-delay: 0.3s; }
-        .form-group:nth-child(4) input { animation-delay: 0.4s; }
-        .form-group:nth-child(5) input { animation-delay: 0.5s; }
-        .form-group:nth-child(6) input { animation-delay: 0.6s; }
-        .form-group:nth-child(7) input { animation-delay: 0.7s; }
+        .form-group:nth-child(1) input,
+        .form-group:nth-child(1) select,
+        .form-group:nth-child(1) textarea { animation-delay: 0.1s; }
+        .form-group:nth-child(2) input,
+        .form-group:nth-child(2) select,
+        .form-group:nth-child(2) textarea { animation-delay: 0.2s; }
+        .form-group:nth-child(3) input,
+        .form-group:nth-child(3) select,
+        .form-group:nth-child(3) textarea { animation-delay: 0.3s; }
+        .form-group:nth-child(4) input,
+        .form-group:nth-child(4) select,
+        .form-group:nth-child(4) textarea { animation-delay: 0.4s; }
+        .form-group:nth-child(5) input,
+        .form-group:nth-child(5) select,
+        .form-group:nth-child(5) textarea { animation-delay: 0.5s; }
+        .form-group:nth-child(6) input,
+        .form-group:nth-child(6) select,
+        .form-group:nth-child(6) textarea { animation-delay: 0.6s; }
+        .form-group:nth-child(7) input,
+        .form-group:nth-child(7) select,
+        .form-group:nth-child(7) textarea { animation-delay: 0.7s; }
         @keyframes slideUp {
             to {
                 opacity: 1;
@@ -124,7 +143,7 @@
             padding: 8px 16px;
             font-size: 14px;
             border-radius: 25px;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.3s;
             width: auto;
             display: inline-flex;
             align-items: center;
@@ -136,6 +155,7 @@
         }
         .btn-primary:hover {
             background-color: #555;
+            transform: translateY(-3px);
         }
         .btn-danger {
             background-color: #dc3545;
@@ -144,7 +164,7 @@
             font-size: 14px;
             border-radius: 25px;
             color: white;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.3s;
             opacity: 0;
             transform: translateY(20px);
             animation: slideUp 0.5s ease forwards;
@@ -152,6 +172,7 @@
         }
         .btn-danger:hover {
             background-color: #c82333;
+            transform: translateY(-3px);
         }
         .social-buttons {
             display: flex;
@@ -491,6 +512,11 @@
             font-size: 12px;
             margin-top: 5px;
         }
+        /* Стили для звёзд рейтинга */
+        .stars i {
+            color: #f39c12;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -654,6 +680,191 @@
                 registerModal.show();
             {% endif %}
         });
+
+        // Функции для корзины (перенесены из home.html)
+        function animateFlyToCart(button, imageSrc) {
+            const cartIcon = document.getElementById('cart-toggle');
+            const buttonRect = button.getBoundingClientRect();
+            const cartRect = cartIcon.getBoundingClientRect();
+
+            const flyingItem = document.createElement('div');
+            flyingItem.className = 'flying-item';
+            flyingItem.style.backgroundImage = `url(${imageSrc})`;
+            flyingItem.style.left = `${buttonRect.left + buttonRect.width / 2 - 25}px`;
+            flyingItem.style.top = `${buttonRect.top + buttonRect.height / 2 - 25}px`;
+
+            document.body.appendChild(flyingItem);
+
+            setTimeout(() => {
+                flyingItem.style.left = `${cartRect.left + cartRect.width / 2 - 25}px`;
+                flyingItem.style.top = `${cartRect.top + cartRect.height / 2 - 25}px`;
+                flyingItem.style.opacity = '0';
+                flyingItem.style.transform = 'scale(0.5) rotate(720deg)';
+            }, 50);
+
+            setTimeout(() => {
+                flyingItem.remove();
+            }, 1000);
+        }
+
+        function addToCart(productId, button) {
+            const imageSrc = button.closest('.product-card')?.querySelector('img')?.dataset.image || button.closest('.product-info')?.querySelector('img')?.src;
+            if (imageSrc) {
+                animateFlyToCart(button, imageSrc);
+            }
+
+            fetch('/add_to_cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: `product_id=${productId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('cart-count').textContent = data.total_items;
+                    updateCartDisplay(data.cart_items, data.cart_total);
+                    openCart();
+                } else {
+                    console.error('Ошибка при добавлении товара в корзину:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+        }
+
+        function removeFromCart(cartItemId) {
+            fetch('/remove_from_cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: `cart_item_id=${cartItemId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('cart-count').textContent = data.total_items;
+                    updateCartDisplay(data.cart_items, data.cart_total);
+                } else {
+                    console.error('Ошибка при удалении товара из корзины:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+        }
+
+        function getCsrfToken() {
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+            return cookieValue;
+        }
+
+        function updateCartDisplay(cartItems, cartTotal) {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartCountElement = document.getElementById('cart-count');
+            const cartTotalElement = document.getElementById('cart-total');
+
+            cartItemsContainer.innerHTML = '';
+            if (!cartItems || cartItems.length === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="empty-cart">
+                        <img src="{% static '/images/empty-cart.png' %}" alt="Empty Cart">
+                        <p>Ваша корзина пуста.</p>
+                    </div>
+                `;
+                cartCountElement.textContent = '0';
+                cartTotalElement.textContent = `Итого: 0 $`;
+            } else {
+                cartItems.forEach(item => {
+                    if (!item.id) {
+                        console.error('Ошибка: у товара в корзине отсутствует id:', item);
+                        return;
+                    }
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'cart-item';
+                    itemElement.innerHTML = `
+                        <img src="${item.image}" alt="${item.product_name}">
+                        <div class="cart-item-info">
+                            <h4>${item.product_name}</h4>
+                            <p>${item.quantity} x ${item.price} $ = ${item.total_price} $</p>
+                        </div>
+                        <button class="btn-remove-item" data-cart-item-id="${item.id}"></button>
+                    `;
+                    cartItemsContainer.appendChild(itemElement);
+                });
+
+                document.querySelectorAll('.btn-remove-item').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const cartItemId = this.dataset.cartItemId;
+                        if (!cartItemId) {
+                            console.error('Ошибка: cartItemId отсутствует у кнопки удаления');
+                            return;
+                        }
+                        removeFromCart(cartItemId);
+                    });
+                });
+
+                cartCountElement.textContent = cartItems.reduce((total, item) => total + item.quantity, 0);
+                cartTotalElement.textContent = `Итого: ${cartTotal} $`;
+            }
+        }
+
+        function openCart() {
+            const cartSidebar = document.getElementById('cart-sidebar');
+            const cartOverlay = document.getElementById('cart-overlay');
+            cartSidebar.classList.add('active');
+            cartOverlay.classList.add('active');
+        }
+
+        function closeCart() {
+            const cartSidebar = document.getElementById('cart-sidebar');
+            const cartOverlay = document.getElementById('cart-overlay');
+            cartSidebar.classList.remove('active');
+            cartOverlay.classList.remove('active');
+        }
+
+        // Инициализация корзины и привязка событий
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if user.is_authenticated %}
+                // Загрузка корзины при открытии страницы
+                fetch('/get_cart/', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    updateCartDisplay(data.cart_items, data.cart_total);
+                })
+                .catch(error => {
+                    console.error('Ошибка при получении корзины:', error);
+                    updateCartDisplay([], 0);
+                });
+
+                // Привязка событий для корзины
+                document.getElementById('cart-toggle').addEventListener('click', openCart);
+                document.getElementById('cart-overlay').addEventListener('click', closeCart);
+
+                // Привязка кнопок добавления в корзину
+                document.querySelectorAll('.btn-add-to-cart').forEach(button => {
+                    button.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        const productId = this.dataset.productId;
+                        addToCart(productId, this);
+                    });
+                });
+            {% endif %}
+        });
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92c7465d8cd0676e',t:'MTc0NDAwNTMxNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
