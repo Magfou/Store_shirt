@@ -23,11 +23,14 @@ def home(request):
     search_query = request.GET.get('search', '')
     category_id = request.GET.get('category', '')
     sort_by = request.GET.get('sort', 'price')
+    in_stock_filter = request.GET.get('in_stock', '')  # Новый фильтр для "в наличии/не в наличии"
 
     if search_query:
         products = products.filter(Q(name__icontains=search_query))
     if category_id:
         products = products.filter(category_id=category_id)
+    if in_stock_filter in ['true', 'false']:
+        products = products.filter(in_stock=(in_stock_filter == 'true'))
 
     if sort_by:
         products = products.order_by(sort_by)
@@ -69,6 +72,7 @@ def home(request):
             'search_query': search_query,
             'selected_category': category_id,
             'sort_by': sort_by,
+            'in_stock_filter': in_stock_filter,  # Передаем фильтр в пагинацию
         }, request=request)
 
         return JsonResponse({
@@ -82,6 +86,7 @@ def home(request):
         'search_query': search_query,
         'selected_category': category_id,
         'sort_by': sort_by,
+        'in_stock_filter': in_stock_filter,  # Передаем фильтр в шаблон
         'products_page': products_page,
     }
     return render(request, 'home.html', context)
@@ -213,7 +218,7 @@ def checkout(request):
                 return redirect('process_payment', order_id=order.id)
 
             cart.delete()
-            messages.success(request, f'Заказ #{order.id} успешно оформлен! Сумма: {order.total_price} $')
+            messages.success(request, f'Заказ #{order.user_order_number} успешно оформлен! Сумма: {order.total_price} $')
             return redirect('home')
         except Cart.DoesNotExist:
             messages.error(request, 'Корзина не найдена.')
@@ -227,7 +232,7 @@ def process_payment(request, order_id):
     payment = order.payments.first()
 
     if payment.status == 'COMPLETED':
-        messages.success(request, f'Заказ #{order.id} уже оплачен!')
+        messages.success(request, f'Заказ #{order.user_order_number} уже оплачен!')
         return redirect('home')
 
     try:
@@ -237,7 +242,7 @@ def process_payment(request, order_id):
                 'price_data': {
                     'currency': 'usd',
                     'product_data': {
-                        'name': f'Заказ #{order.id}',
+                        'name': f'Заказ #{order.user_order_number}',
                     },
                     'unit_amount': int(order.total_price * 100),
                 },
@@ -263,14 +268,14 @@ def payment_success(request):
     order.save()
     cart = Cart.objects.get(user=request.user)
     cart.delete()
-    messages.success(request, f'Оплата заказа #{order.id} успешно завершена!')
+    messages.success(request, f'Оплата заказа #{order.user_order_number} успешно завершена!')
     return redirect('home')
 
 @login_required
 def payment_cancel(request):
     order_id = request.GET.get('order_id')
     order = get_object_or_404(Order, id=order_id, user=request.user)
-    messages.error(request, f'Оплата заказа #{order.id} была отменена.')
+    messages.error(request, f'Оплата заказа #{order.user_order_number} была отменена.')
     return redirect('checkout')
 
 @login_required
@@ -419,3 +424,8 @@ def delete_review(request, review_id):
     review.product.update_average_rating()
     messages.success(request, 'Ваш отзыв успешно удалён!')
     return redirect('product_detail', product_id=product_id)
+
+@login_required
+def delivery_payment(request):
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'delivery_payment.html', {'orders': orders})

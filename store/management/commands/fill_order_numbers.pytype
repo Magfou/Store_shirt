@@ -1,0 +1,1 @@
+            self.stdout.write(self.style.SUCCESS(f"Updated order {order.id} with user_order_number {order.user_order_number}"))  fill_order_numbers.py

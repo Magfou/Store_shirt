@@ -1,0 +1,116 @@
+/* static/css/style.css */ 
+.orders-container { 
+    max-width: 900px; 
+    margin: 0 auto; 
+    padding: 20px; 
+} 
+ 
+.orders-container h2 { 
+    text-align: center; 
+    font-size: 2rem; 
+    margin-bottom: 20px; 
+    color: #333; 
+} 
+ 
+.orders-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+} 
+ 
+.order-card { 
+    background: #fff; 
+    border-radius: 10px; 
+    padding: 20px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+     
+} 
+ 
+.order-card:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); 
+} 
+ 
+.order-card h3 { 
+    font-size: 1.5rem; 
+    margin-bottom: 10px; 
+    color: #333; 
+} 
+ 
+.order-card p { 
+    margin: 5px 0; 
+    color: #555; 
+} 
+ 
+.order-status { 
+    padding: 5px 10px; 
+    border-radius: 5px; 
+    font-weight: bold; 
+    display: inline-block; 
+    
+} 
+ 
+.order-status.pending { 
+    background-color: #ffeb3b; 
+    color: #333; 
+} 
+ 
+.order-status.delivered { 
+    background-color: #4caf50; 
+    color: #fff; 
+} 
+ 
+ 
+.delivery-payment-container { 
+    max-width: 900px; 
+    margin: 0 auto; 
+    padding: 20px; 
+} 
+ 
+.delivery-payment-container h2 { 
+    text-align: center; 
+    font-size: 2rem; 
+    margin-bottom: 20px; 
+    color: #333; 
+} 
+ 
+.delivery-info, .payment-info, .recent-orders { 
+    background: #f9f9f9; 
+    border-radius: 10px; 
+    padding: 20px; 
+    margin-bottom: 20px; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+    transition: transform 0.3s ease; 
+} 
+ 
+.delivery-info:hover, .payment-info:hover, .recent-orders:hover { 
+    transform: translateY(-3px); 
+} 
+ 
+.delivery-info h3, .payment-info h3, .recent-orders h3 { 
+    font-size: 1.5rem; 
+    margin-bottom: 10px; 
+    color: #333; 
+} 
+ 
+.delivery-info p, .payment-info p, .recent-orders p { 
+    color: #555; 
+    line-height: 1.6; 
+} 
+ 
+.delivery-info ul, .payment-info ul, .recent-orders ul { 
+    list-style-type: disc; 
+    margin-left: 20px; 
+    color: #555; 
+} 
+ 
+.order-item { 
+    margin: 5px 0; 
+    padding: 5px; 
+    border-left: 3px solid #4caf50; 
+    transition: border-color 0.3s ease; 
+} 
+ 
+.order-item:hover { 
+    border-left-color: #ffeb3b; 
+} 

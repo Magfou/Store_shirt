@@ -12,6 +12,7 @@ urlpatterns = [
     path('payment_success/', views.payment_success, name='payment_success'),
     path('payment_cancel/', views.payment_cancel, name='payment_cancel'),
     path('my_orders/', views.my_orders, name='my_orders'),
+    path('delivery_payment/', views.delivery_payment, name='delivery_payment'),  # Новый URL
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
