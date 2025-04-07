@@ -138,3 +138,5 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your-email@gmail.com'
 EMAIL_HOST_PASSWORD = 'your-password'
 DEFAULT_FROM_EMAIL = 'your-email@gmail.com'
+
+STATIC_ROOT = BASE_DIR / "staticfiles"

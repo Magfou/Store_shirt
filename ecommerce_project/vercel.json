@@ -2,18 +2,27 @@
    "version": 2,
    "builds": [
      {
-       "src": "manage.py",
+       "src": "project/wsgi.py",
        "use": "@vercel/python"
      }
    ],
    "routes": [
      {
        "src": "/(.*)",
-       "dest": "manage.py"
+       "dest": "project/wsgi.py"
      }
    ],
    "env": {
-     "DJANGO_SETTINGS_MODULE": "project"
+     "DJANGO_SETTINGS_MODULE": "project.settings"
    }
  }
  
+"builds": [
+  {
+    "src": "project/wsgi.py",
+    "use": "@vercel/python",
+    "config": {
+      "command": "python manage.py collectstatic --noinput"
+    }
+  }
+]
