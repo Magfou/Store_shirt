@@ -114,3 +114,70 @@
 .order-item:hover { 
     border-left-color: #ffeb3b; 
 } 
+.site-footer {
+    background: #000000;
+    color: #fff;
+    padding: 40px 0;
+    font-family: Arial, sans-serif;
+}
+
+.footer-container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.footer-info, .footer-social {
+    flex: 1;
+    min-width: 300px;
+}
+
+.footer-info h3, .footer-social h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #ffeb3b;
+}
+
+.footer-info p {
+    margin: 5px 0;
+    color: #ddd;
+}
+
+.footer-social .social-links {
+    display: flex;
+    gap: 15px;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+
+
+.social-link:hover {
+    transform: translateY(-3px);
+    background: #555;
+}
+
+.social-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #555;
+    color: #aaa;
+}
