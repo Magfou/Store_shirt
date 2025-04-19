@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 import uuid
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
 
@@ -68,20 +69,28 @@ class CartItem(models.Model):
         price = self.product.discount_price if self.product.discount_price else self.product.price
         return self.quantity * price
 
-# store/models.py
-# store/models.py
 class Order(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Ожидает'),
+        ('processing', 'В обработке'),
+        ('shipped', 'Отправлен'),
+        ('delivered', 'Доставлен'),
+        ('cancelled', 'Отменён'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     user_order_number = models.CharField(max_length=50, unique=True, blank=True)  # Увеличим max_length
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50, default='pending')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    address = models.TextField(blank=True)
 
     def save(self, *args, **kwargs):
         if not self.user_order_number:
-            # Генерируем уникальный номер с использованием uuid
-            unique_id = str(uuid.uuid4()).split('-')[0]  # Берём первую часть UUID
-            self.user_order_number = f"ORD-{unique_id}"
+            # Подсчитываем количество заказов пользователя
+            user_order_count = Order.objects.filter(user=self.user).count()
+            # Новый номер заказа будет на 1 больше текущего количества
+            self.user_order_number = f"№{user_order_count + 1}"
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -110,6 +119,9 @@ class Payment(models.Model):
         ('FAILED', 'Неудача'),
     ], default='PENDING')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment for Order {self.order.user_order_number}"
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')

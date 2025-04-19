@@ -9,10 +9,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 import stripe
+import os
 from .models import Product, Category, Cart, CartItem, Order, OrderItem, Payment, Review
 
-# Настройка Stripe (замените на ваш секретный ключ)
-stripe.api_key = 'sk_test_51RApJYPNAUNwoBnEAfZkaQrZemAYYvIoMl8i0NMgNxgxXbhwGlBv5vtH1reIbF5tfXQo4zDYgxkBzO9Us8BVuOVc00lmuviAtl'
+# Настройка Stripe (читаем ключ из .env)
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY', 'sk_test_51RApJYPNAUNwoBnEAfZkaQrZemAYYvIoMl8i0NMgNxgxXbhwGlBv5vtH1reIbF5tfXQo4zDYgxkBzO9Us8BVuOVc00lmuviAtl')
 
 @login_required
 def home(request):
@@ -189,14 +190,27 @@ def checkout(request):
                 return redirect('home')
 
             payment_method = request.POST.get('payment_method')
+            city = request.POST.get('city')
+            street = request.POST.get('street')
+            house = request.POST.get('house')
+            apartment = request.POST.get('apartment')
+
             if not payment_method:
                 messages.error(request, 'Выберите способ оплаты.')
                 return redirect('checkout')
 
+            if not all([city, street, house, apartment]):
+                messages.error(request, 'Укажите полный адрес доставки.')
+                return redirect('checkout')
+
+            # Формируем адрес как строку
+            address = f"{city}, ул. {street}, д. {house}, кв. {apartment}"
+
             order = Order.objects.create(
                 user=request.user,
                 total_price=cart.total_price,
-                status='PENDING'
+                status='pending',  # Приводим к нижнему регистру
+                address=address
             )
 
             for cart_item in cart.items.all():
@@ -219,7 +233,7 @@ def checkout(request):
 
             cart.delete()
             messages.success(request, f'Заказ #{order.user_order_number} успешно оформлен! Сумма: {order.total_price} $')
-            return redirect('home')
+            return redirect('my_orders')  # Перенаправляем на страницу заказов
         except Cart.DoesNotExist:
             messages.error(request, 'Корзина не найдена.')
             return redirect('home')
@@ -233,7 +247,7 @@ def process_payment(request, order_id):
 
     if payment.status == 'COMPLETED':
         messages.success(request, f'Заказ #{order.user_order_number} уже оплачен!')
-        return redirect('home')
+        return redirect('my_orders')  # Перенаправляем на страницу заказов
 
     try:
         session = stripe.checkout.Session.create(
@@ -264,12 +278,12 @@ def payment_success(request):
     payment = order.payments.first()
     payment.status = 'COMPLETED'
     payment.save()
-    order.status = 'PENDING'
+    order.status = 'pending'  # Приводим к нижнему регистру
     order.save()
     cart = Cart.objects.get(user=request.user)
     cart.delete()
     messages.success(request, f'Оплата заказа #{order.user_order_number} успешно завершена!')
-    return redirect('home')
+    return redirect('my_orders')  # Перенаправляем на страницу заказов
 
 @login_required
 def payment_cancel(request):
@@ -342,7 +356,7 @@ def has_purchased_product(user, product):
     return Order.objects.filter(
         user=user,
         items__product=product,
-        status__in=['SHIPPED', 'DELIVERED']
+        status__in=['shipped', 'delivered']  # Приводим к нижнему регистру
     ).exists()
 
 @login_required
@@ -428,4 +442,4 @@ def delete_review(request, review_id):
 @login_required
 def delivery_payment(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'delivery_payment.html', {'orders': orders})
+    return render(request, 'delivery_and_payment.html', {'orders': orders})

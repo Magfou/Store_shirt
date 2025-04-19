@@ -1,30 +1,143 @@
-<!-- templates/my_orders.html -->
 {% extends 'base.html' %}
-
 {% load static %}
 
 {% block content %}
-<div class="orders-container">
-    <h2>МОИ ЗАКАЗЫ</h2>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Мои заказы</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     {% if orders %}
-        <div class="orders-list">
-            {% for order in orders %}
-                <div class="order-card" data-status="{{ order.status|lower }}">
-                    <h3>Заказ №{{ forloop.counter }} ({{ order.user_order_number }})</h3>
-                    <p><strong>Дата:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
-                    <p><strong>Сумма:</strong> {{ order.total_price }} $</p>
-                    <p><strong>Статус:</strong> <span class="order-status {{ order.status|lower }}">{{ order.status }}</span></p>
-                    <p><strong>Товары:</strong></p>
-                    <ul>
-                        {% for item in order.items.all %}
-                            <li>{{ item.product.name }} ({{ item.quantity }} шт.) - {{ item.get_cost }} $</li>
-                        {% endfor %}
-                    </ul>
+        {% for order in orders %}
+            <div class="order-card mb-4 p-4 mx-auto">
+                <div class="order-header d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <strong>Заказ {{ order.user_order_number }}</strong><br>
+                        Дата: {{ order.created_at|date:"d.m.Y H:i" }}<br>
+                        Адрес доставки: {{ order.address }}<br>
+                        Сумма: {{ order.total_price }} $<br>
+                        Статус: <span class="badge {% if order.status == 'pending' %}bg-warning{% elif order.status == 'processing' %}bg-info{% elif order.status == 'shipped' %}bg-primary{% elif order.status == 'delivered' %}bg-success{% else %}bg-danger{% endif %}">{{ order.get_status_display }}</span><br>
+                        Способ оплаты: {{ order.payments.first.get_method_display }}
+                    </div>
                 </div>
-            {% endfor %}
-        </div>
+
+                <h5>Товары:</h5>
+                <div class="product-list">
+                    {% for item in order.items.all %}
+                        <a href="{% url 'product_detail' item.product.id %}" class="product-card text-decoration-none mb-3 d-flex align-items-center">
+                            <img src="{% if item.product.image %}{{ item.product.image.url }}{% else %}https://via.placeholder.com/80{% endif %}" alt="{{ item.product.name }}" class="product-image">
+                            <div class="product-info ms-3">
+                                <h6 class="product-title mb-1">{{ item.product.name }}</h6>
+                                <div class="product-rating mb-1">
+                                    <span class="star">★</span> {{ item.product.average_rating|floatformat:1 }} ({{ item.product.reviews.count }} отзывов)
+                                </div>
+                                <div class="product-price">
+                                    {% if item.product.discount_price %}
+                                        <span class="current-price">{{ item.product.discount_price }} $</span>
+                                        <span class="old-price text-muted text-decoration-line-through ms-2">{{ item.product.price }} $</span>
+                                    {% else %}
+                                        <span class="current-price">{{ item.product.price }} $</span>
+                                    {% endif %}
+                                    <span class="quantity ms-2">x {{ item.quantity }}</span>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
     {% else %}
-        <p>У вас пока нет заказов.</p>
+        <p class="text-center">У вас пока нет заказов.</p>
     {% endif %}
 </div>
+
+<style>
+.order-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    max-width: 600px; /* Уменьшаем ширину карточки */
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.order-header .badge {
+    font-size: 0.9rem;
+    padding: 5px 10px;
+}
+
+.product-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.product-info {
+    flex: 1;
+}
+
+.product-title {
+    font-size: 1rem;
+    color: #333;
+}
+
+.product-rating {
+    font-size: 0.9rem;
+    color: #f39c12;
+}
+
+.product-rating .star {
+    color: #f1c40f;
+}
+
+.product-price {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.product-price .current-price {
+    font-weight: bold;
+}
+
+.product-price .old-price {
+    font-size: 0.9rem;
+    color: #999;
+}
+
+.product-price .quantity {
+    font-size: 0.9rem;
+    color: #666;
+}
+</style>
 {% endblock %}
